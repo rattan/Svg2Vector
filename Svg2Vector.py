@@ -1,0 +1,1011 @@
+from collections import deque
+from xml.dom import minidom
+import re
+
+from SvgTree import SvgTree
+from SvgGroupNode import SvgGroupNode
+from SvgLeafNode import SvgLeafNode
+from PathBuilder import PathBuilder
+from StreamWriter import StreamWriter
+
+# Converts SVG to VectorDrawable's XML
+class Svg2Vector:
+    def __init__(self):
+        self.SVG_DEFS = 'defs'
+        self.SVG_USE = 'use'
+        self.SVG_HREF = 'href'
+        self.SVG_XLINK_HREF = 'xlink:href'
+        self.SVG_POLYGON = 'polygon'
+        self.SVG_POLYLINE = 'polyline'
+        self.SVG_RECT = 'rect'
+        self.SVG_CIRCLE = 'circle'
+        self.SVG_LINE = 'line'
+        self.SVG_PATH = 'path'
+        self.SVG_ELLIPSE = 'ellipse'
+        self.SVG_GROUP = 'g'
+        self.SVG_STYLE = 'style'
+        self.SVG_DISPLAY = 'display'
+        self.SVG_CLIP_PATH_ELEMENT = 'clipPath'
+        self.SVG_D = 'd'
+        self.SVG_CLIP = 'clip'
+        self.SVG_CLIP_PATH = 'clip-path'
+        self.SVG_CLIP_RULE = 'clip-rule'
+        self.SVG_FILL = 'fill'
+        self.SVG_FILL_OPACITY = 'fill-opacity'
+        self.SVG_FILL_RULE = 'fill-rule'
+        self.SVG_OPACITY = 'opacity'
+        self.SVG_PAINT_ORDER = 'paint-order'
+        self.SVG_STROKE = 'stroke'
+        self.SVG_STROKE_LINECAP = 'stroke-linecap'
+        self.SVG_STROKE_LINEJOIN = 'stroke-linejoin'
+        self.SVG_STROKE_OPACITY = 'stroke-opacity'
+        self.SVG_STROKE_WIDTH = 'stroke-width'
+        self.SVG_MASK = 'mask'
+        self.SVG_POINTS = 'points'
+        self.presentationMap = {
+            self.SVG_CLIP: 'android:clip',
+            self.SVG_CLIP_RULE: '',     # Treated individually.
+            self.SVG_FILL: 'android:fillColor',
+            self.SVG_FILL_OPACITY: 'android:fillAlpha',
+            self.SVG_FILL_RULE: 'android:fillType',
+            self.SVG_OPACITY: '',       # Treated individually.
+            self.SVG_PAINT_ORDER: '',   # Treated individually.
+            self.SVG_STROKE: 'android:strokeColor',
+            self.SVG_STROKE_LINECAP: 'android:strokeLineCap',
+            self.SVG_STROKE_LINEJOIN: 'android:strokeLineJoin',
+            self.SVG_STROKE_OPACITY: 'android:strokeAlpha',
+            self.SVG_STROKE_WIDTH: 'android:strokeWidth'
+        }
+        self.gradientMap = {
+            'x1': 'android:startX',
+            'y1': 'android:startY',
+            'x2': 'android:endX',
+            'y2': 'android:endY',
+            'cx': 'android:centerX',
+            'cy': 'android:centerY',
+            'r': 'android:gradientRadius',
+            'spreadMethod': 'android:tileMode',
+            'gradientUnits': '',
+            'gradientTransform': '',
+            'gradientType': 'android:type',
+        }
+        self.unsupportedSvgNodes = [
+            # Animation elements.
+            'animate',
+            'animateColor',
+            'animateMotion',
+            'animateTransform',
+            'mpath',
+            'set',
+            # Container elements.
+            'a',
+            'marker',
+            'missing-glyph',
+            'pattern',
+            'switch',
+            # Filter primitive elements.
+            'feBlend',
+            'feColorMatrix',
+            'feComponentTransfer',
+            'feComposite',
+            'feConvolveMatrix',
+            'feDiffuseLighting',
+            'feDisplacementMap',
+            'feFlood',
+            'feFuncA',
+            'feFuncB',
+            'feFuncG',
+            'feFuncR',
+            'feGaussianBlur',
+            'feImage',
+            'feMerge',
+            'feMergeNode',
+            'feMorphology',
+            'feOffset',
+            'feSpecularLighting',
+            'feTile',
+            'feTurbulence',
+            # Font elements.
+            'font',
+            'font-face',
+            'font-face-format',
+            'font-face-name',
+            'font-face-src',
+            'font-face-uri',
+            'hkern',
+            'vkern',
+            # Gradient elements.
+            'stop',
+            # Graphics elements.
+            'ellipse',
+            'image',
+            # Light source elements.
+            'feDistantLight',
+            'fePointLight',
+            'feSpotLight',
+            # Structural elements.
+            'symbol',
+            # Text content elements.
+            'altGlyphDef',
+            'altGlyphItem',
+            'glyph',
+            'glyphRef',
+            'text',
+            # Text content child elements.
+            'altGlyph',
+            'textPath',
+            'tref',
+            'tspan',
+            # Uncategorized elements.
+            'color-profile',
+            'cursor',
+            'filter',
+            'foreignObject',
+            'script',
+            'view'
+            ]
+        self.SPACE_OR_COMMA = r'[\s,]+'
+
+    def parse(self, path):
+        svgTree = SvgTree()
+        parseErrors = []
+        doc = svgTree.parse(path, parseErrors)
+        for error in parseErrors:
+            svgTree.logError(error, None)
+
+        # Get <svg> elements.
+        nSvgNode = doc.getElementsByTagName('svg')
+        if len(nSvgNode) != 1:
+            message = 'No <svg> tags found' if len(svgNode) == 0 else 'Multiple <svg> tags are not supported.'
+            raise ValueError(message)
+        rootElement = nSvgNode.item(0)
+        svgTree.parseDimension(rootElement)
+
+        # for nNode in nSvgNode:
+        #     if nNode.nodeType == minidom.Node.ELEMENT_NODE:
+        #         self.parseDimension(svgTree, nNode)
+
+        if svgTree.viewBox == None:
+            svgTree.logErrorLine('Missing "viewBox" in <svg> element', rootElement)
+            return svgTree
+
+        # if (svgTree.w == 0 or svgTree.h == 0) and 0 < svgTree.viewBox[2] and 0 < svgTree.viewBox[3]:
+        #     svgTree.w = svgTree.viewBox[2]
+        #     svgTree.h = svgTree.viewBox[3]
+
+        # # Parse trancformation information.
+        # # TODO: Properly handle transformation in the group level. In the "use" case, we treat it as global for now.
+        # svgTree.matrix = [0.0] * 6
+        # svgTree.matrix[0] = 1.0
+        # svgTree.matrix[3] = 1.0
+        # nUseTags = doc.getElementsByTagName('use')
+        # for nNode in nUseTags:
+        #     if nNode.nodeType == minidom.Node.ELEMENT_NODE:
+        #         self.parseTransformation(svgTree, nNode)
+        
+        root = SvgGroupNode(svgTree, rootElement, 'root')
+        svgTree.setRoot(root)
+
+        # Parse all the group and path node recursively.
+        self.traverseSvgAndExtract(svgTree, root, rootElement)
+        self.resolveUseNodes(svgTree)
+        self.resolveGradientReference(svgTree)
+
+        # TODO: Handle clipPath elements that reference another clipPath
+        # Add attributes for all the style elements.
+        for key, value in svgTree.getStyleAffectedNodes().items():
+            for n in value:
+                self.addStyleToPath(n, svgTree.getStyleClassAttr(key))
+
+        # Replaces elements that reference clipPaths and replaces them with clipPathNodes
+        # Note that clip path can be embedded within style, so it has to be called after
+        # addStyleToPath.
+        for key, value in svgTree.getClipPathAffectedNodesSet().items():
+            self.handleClipPath(svgTree, key, value[0], value[1])
+
+        svgTree.flatten()
+        svgTree.validate()
+        svgTree.dump()
+
+        return svgTree
+
+    # Fills in all <use> nodes in the svgTree.
+    def resolveUseNodes(self, svgTree):
+        nodes = svgTree.getPendingUseSet()
+        pendingUseSet = set(nodes)
+        while nodes:
+            nl = len(nodes)
+            nodes = {n for n in nodes if n.resoveHref(svgTree)}
+            if nl == len(nodes):
+                self.reportCycles(svgTree, nodes)
+                return
+        ordering = self.getUseNodeTopologicalOrdering(svgTree, pendingUseSet)
+        [o.handleUse() for o in ordering]
+
+    # This orders the 'use' nodes in pendingUseSet in a topological order, in the sense that an
+    # earlier node does not reference a part of the svgTree that contains a later node.
+    def getUseNodeTopologicalOrdering(self, svgTree, pendingUseSet):
+        queue = deque([])
+        # Directed graph where nodes of the svgTree point to their parent and 'use' nodes that
+        # reference them.
+        reverseGraph = {}
+        inDegrees = {}
+        root = svgTree.getRoot()
+        queue.append(root)
+        reverseGraph[root] = set()
+        inDegrees[root] = 0
+        while queue:
+            current = queue.popleft()
+            if current is SvgGroupNode:
+                for child in current.mChildren:
+                    reverseGraph.setdefault(child, {})
+                    reverseGraph[child].append(current)
+                    if child not in inDegrees:
+                        queue.append(child)
+                        inDegrees[child] = 0
+                useRefNode = groupNode.mUseReferenceNode
+                if useRefNode:
+                    reverseGraph.setdefault(useRefNode, {})
+                    reverseGraph[useRefNode].append(current)
+                    if useRefNode not in inDegrees:
+                        queue.append(useRefNode)
+                        inDegrees[useRefNode] = 0
+        for node, value in reverseGraph.items():
+            for child in value:
+                inDegrees[child] = inDegrees[child] + 1
+        for node, value in inDegrees.items():
+            if value == 0:
+                queue.append(node)
+        
+        topologicalOrdering = []
+        while queue:
+            current = queue.popleft()
+            if current is SvgGroupNode:
+                if current.mUseReferenceNode:
+                    topologicalOrdering.append(current)
+                    pendingUseSet.remove(current)
+            for child in reverseGraph[current]:
+                inDegrees[child] = inDegrees[child] - 1
+                if inDegrees[child] == 0:
+                    queue.append(child)
+
+        # Add remaining nodes for which the order is irrelevant
+        topologicalOrdering.extend(pendingUseSet)
+        return topologicalOrdering
+
+    # Resolve all href reference in gradient nodes.
+    def resolveGradientReference(self, svgTree):
+        nodes = svgTree.getPendingGradientRefSet()
+        while nodes:
+            nl = len(nodes)
+            nodes = {n for n in nodes if n.resoveHref(svgTree)}
+            if nl == len(nodes):
+                # Not avle to make progress because of cyclic references.
+                self.reportCycles(svgTree, nodes)
+                break
+
+    def reportCycles(self, svgTree, svgNodes):
+        edges = {}
+        nodesById = {}
+        for svgNode in svgNodes:
+            element = svgNode.getDocumentElement()
+            _id = element.getAttribute('id')
+            if _id:
+                targetId = svgNode.getHrefId()
+                if targetId:
+                    edges[_id] = targetId
+                    nodesById[_id] = element
+
+        while edges:
+            visited = set()
+            _id = next(iter(edges))
+            targetId = edges[_id]
+            while targetId and _id not in visited:
+                visited.append(_id)
+                _id = targetId
+                targetId = edges[id]
+            
+            if targetId:    # Broken links are reported separately. Ignore them here.
+                node = nodesById[_id]
+                cycle = self.getCycleStartingAt(_id, edges, nodesById)
+                svgTree.logError(f'Circular dependency of <use> nodes: {cycle}', node)
+            for v in visited:
+                del edges[v]
+
+    def getCycleStartingAt(self, startId, edges, nodesById):
+        buf = ''
+        _id = startId
+        while True:
+            _id = edges[_id]
+            buf += f' -> {_id}'
+            if _id == startId:
+                break
+            buf += f' (line {self.getStartLine(nodesById[_id])})'
+        return buf
+
+
+    def traverseSvgAndExtract(self, svgTree, currentGroup, item):
+        childNodes = item.childNodes
+
+        for idx, childNode in enumerate(childNodes):
+            if childNode.nodeType != minidom.Node.ELEMENT_NODE or not childNode.hasChildNodes() and not childNode.hasAttributes():
+                continue
+
+            tagName = childNode.tagName
+            if tagName in [self.SVG_PATH, self.SVG_RECT, self.SVG_CIRCLE, self.SVG_ELLIPSE, self.SVG_POLYGON, self.SVG_POLYLINE, self.SVG_LINE]:
+                child = SvgLeafNode(svgTree, childNode, f'{tagName}{idx}')
+                self.processIdName(svgTree, child)
+                currentGroup.addChild(child)
+                self.extractAllItemsAs(svgTree, child, childNode, currentGroup)
+                svgTree.setHasLeafNode(True)
+            elif self.SVG_GROUP == tagName:
+                childGroup = SvgGroupNode(svgTree, childNode, f'child{idx}')
+                currentGroup.addChild(childGroup)
+                self.processIdName(svgTree, child)
+                self.extractGroupNode(svgTree, childGroup, currentGroup)
+                self.traverseSvgAndExtract(svgTree, childGroup, childNode)
+            elif self.SVG_USE == tagName:
+                childGroup = SvgGroupNode(svgTree, childNode, f'child{idx}')
+                self.processIdName(svgTree, childGroup)
+                currentGroup.addChild(childGroup)
+                svgTree.addToPendingUseSet(childGroup)
+            elif self.SVG_DEFS == tagName:
+                childGroup = SvgGroupNode(svgTree, childNode, f'child{idx}')
+                self.traverseSvgAndExtract(svgTree, childGroup, childNode)
+            elif tagName in [self.SVG_CLIP_PATH_ELEMENT, self.SVG_MASK]:
+                clipPath = SvgClipPathNode(svgTree, childNode, f'{tagName}{idx}')
+                self.processIdName(svgTree, clipPath)
+                self.traverseSvgAndExtract(svgTree, clipPath, childNode)
+            elif self.SVG_STYLE == tagName:
+                self.extractStyleNode(svgTree, childNode)
+            elif 'linearGradient' == tagName:
+                gradientNode = SvgGradientNode(svgTree, childElement, f'{tagName}{idx}')
+                self.processIdName(svgTree, gradientNode)
+                self.extrctGradientNode(svgTree, gradientNode)
+                gradientNode.fillPresentationAttributes('gradientType', 'linear')
+                svgTree.setHasGradient(True)
+            elif 'radialGradient' == tagName:
+                gradientNode = SvgGradientNode(svgTree, childNode, f'{tagName}{idx}')
+                self.processIdName(svgTree, gradientNode)
+                self.extrctGradientNode(svgTree, gradientNode)
+                gradientNode.fillPresentationAttributes('gradientType', 'radial')
+                svgTree.setHasGradient(True)
+            else:
+                _id = childElement.getAttribute('id')
+                if _id:
+                    svgTree.addIgnoredId(_id)
+                # For other fancy tags, like <switch>, they can contain children too.
+                # Report the unsupported nodes.
+                if tagName in self.unsupportedSvgNodes:
+                    svgTree.logErrorLine(f'<{tagName}> is not supported', childNode)
+                # This is a workaround for the cases using defs to define a full icon size clip
+                # path, which is redundent information anyway.
+                self.traverseSvgAndExtract(svgTree, currentGroup, childNode)
+
+    # Reads content from a gradient element's decumentNode and fills in attributes for the given
+    # Svg gradient node.
+    def extractGradientNode(svg, gradientNode):
+        element = gradientNode.getDocumentElement()
+        attrs = element.attributes
+        if elemetns.getAttribute(self.SVG_HREF) or elements.getAttribute(self.SVG_XLINK_HREF):
+            svg.addToPendingGradientRefSet(gradientNode)
+        
+        for j in range(attrs.length):
+            n = attrs.item(i)
+            name = n.nodeName
+            value = n.nodeValue
+            if name in gradientMap:
+                gradientNode.fillPresentationAttributes(name, value)
+        gradientChildren = element.childNodes
+
+        # Default SVG gradient offset is the previous largets offset.
+        greatestOffset = 0.0
+        for i in range(gradientChildren.length):
+            node = gradientChildren.item(i)
+            nodeName = node.nodeName
+            if nodeName == 'stop':
+                stopAttr = node.attributes
+                # Default SVG gradient stop color is black.
+                color = 'rgb(0,0,0)'
+                # Default SVG gradient stop opacity is 1.
+                opacity = '1'
+                for k in range(stopAttr.length):
+                    stopItem = stopAttr.item(k)
+                    name = stopItem.nodeName
+                    value = stopItem.nodeValue
+                    try:
+                        if name == 'offset':
+                            # If a gradient's value is not greater than all previous offset
+                            # values, then the offset value is adjusted to be equal to
+                            # the largets of all previous offset values.
+                            greatestOffset = self.extractOffset(value, greatestOffset)
+                        elif name == 'stop-color':
+                            color = value
+                        elif name == 'stop-opacity':
+                            opacity = value
+                        elif name == 'style':
+                            for attr in value.split(';'):
+                                splitAttribute = attr.split(':')
+                                if len(splitAttribute) == 2:
+                                    if attr.startswith('stop-color'):
+                                        color = splitAttribute[1]
+                                    elif attr.startswith('stop-opacity'):
+                                        opacity = splitAttribute[1]
+                    except Exception as e:
+                        svg.logError(f'Invalid attribute value: {name}="{value}"', node)
+                offset = svg.formatCoordinate(greatestOffset)
+                vdColor = gradientNode.colorSvg2Vd(color, '#000000')
+                if vdColor:
+                    color = vdColor
+                gradientNode.addGradientStop(color, offset, opacity)
+                            
+    # Finds the gradient offset value given a String containing the value and greatest previous
+    # offset value.
+    #
+    # @param offset an absolute floating point value or a percentage
+    # @param greatestOffset is the greatest offset value seen in the gradient so far
+    # @return the new greatest offset value
+    def extractOffset(self, offset, greatestOffset):
+        x = 0.0
+        if offset.endswith('%'):
+            x = float(offset[-1]) / 100
+        else:
+            x = float(offset)
+        # Gradient offset value must be between 0 and 1 or 0% and 100%.
+        x = min(1, max(x, 0))
+        return max(x, greatestOffset)
+
+    # Checks to see if the childGroup reference an clipPath or style elements. Saves the
+    # reference in the svgTree to add the information to an SvgNode later.
+    def extractGroupNode(self, svgTree, childGroup, currentGroup):
+        a = childGroup.docuemntElement.attributes
+        for j in range(a.length):
+            n = a.item(j)
+            name = n.nodeName
+            value = n.nodeValue
+            if name in [self.SVG_CLIP_PATH, self.SVG_MASK]:
+                if value:
+                    svgTree.addClipPathAffectedNode(childGroup, currentGroup, value)
+            elif name == 'class':
+                if value:
+                    svgTree.addAffectedNodeToStyleClass('.', value, childGroup)                    
+
+    # Extracts the attribute information from a style element and adds to the
+    # styleClassAttributeMap of the SvgTree. SvgNodes reference style elements using a 'class'
+    # attribute. The style attribute will be filled into the tree after the svgTree calls
+    # traverseSVGAndExtract().
+    def extractStyleNode(self, svgTree, currentNode):
+        a = currentNode.childNodes
+        styleData = ''
+        for j in range(a.length):
+            n = a.item(j)
+            if n.nodeType == minidom.Type.CDATA_SECTION_NODE or a.length == 1:
+                styleData = n.nodeValue
+        if styleData:
+            # Separate each of the classes.
+            classData = styleData.split('}')
+            for sClassData in classData:
+                splitClassData = aClassData.split('\\{')
+                if len(splitClassData) < 2:
+                    # When the class info is empty, then skip.
+                    continue
+                className = splitClassData[0].strip()
+                styleAttr = splitClassData[1].strip()
+                # Separate multiple classes if necessary.
+                splitClassNames = className.split(',')
+                for splitClassName in splitClassNames:
+                    styleAttrTemp = styleAttr
+                    className = splitClassName.strip()
+                    # Concatenate the attributes to existing attributes.
+                    existing = svgTree.getStyleClassAttr(className)
+                    if existing:
+                        styleAttrTemp += f';{existing}'
+                    svgTree.addStyleClassToTree(className, styleAttrTemp)
+    
+    # Checks if the id of a node exists and adds the id and svgNode to the svgTree's idMap if it
+    # exists.
+    def processIdName(self, svgTree, node):
+        _id = node.getAttributeValue('id')
+        if _id:
+            svgTree.addIdToMap(id, node)
+
+    # Replaces an SvgNode in the SvgTree that references a clipPath element with the
+    # SvgClipPathNode that corresponds to the referenced clip-path id. Adds the SvgNode as an
+    # affected node of the SvgClipPathNode.
+    def handleClipPath(self, svg, child, currentGroup, value):
+        if not currentGroup or not value:
+            return
+        clipName = self.getClipPathName(value)
+        if not clipName:
+            return
+        clipNode = self.getClipNodeFromId(value)
+        if not clipNode:
+            return
+        clipCopy = SvgClipPathNode(clipNode).deepCopy()
+
+        currentGroup.replaceChild(child, clipCopy)
+
+        clipCopy.addAffectedNode(child)
+        clipCopy.setClipPathNodeAttributes()
+
+    # Normally, clip path is referred as "url(#clip-path)", this function can help to extract the
+    # name, which is "clip-path" here.
+    # @return the name of the clip path or null if the given string does not contain a proper clip
+    #     path name.
+    def getClipPathname(self, s):
+        if not s:
+            return None
+        startPos = s.find('#')
+        endPos = s.find(')', startPos + 1)
+        if endPos < 0:
+            endPos = len(s)
+        return s[startPos + 1: endPos].strip()
+
+    # Reads
+
+
+
+
+
+
+    # def parseTransformation(self, avg, nNode):
+    #     a = nNode.attributes
+    #     for i in range(a.length):
+    #         n = a.item(i)
+    #         name = n.nodeName
+    #         value = n.nodeValue
+    #         if name == self.SVG_TRANSFORM:
+    #             if value.startswith('matrix('):
+    #                 for idx, sp in enumerate(value[7:].split()):
+    #                     avg.matrix[idx] = float(sp)
+    #         elif name == 'y':
+    #             float(value)
+    #         elif name == 'x':
+    #             float(value)
+
+    # def parseDimension(self, avg, nNode):
+    #     a = nNode.attributes
+    #     for i in range(a.length):
+    #         n = a.item(i)
+    #         name = n.nodeName
+    #         value = n.nodeValue
+    #         subStringSize = len(value)
+    #         if 2 < subStringSize:
+    #             if value.endswith('px'):
+    #                 subStringSize = subStringSize - 2
+
+    #         if self.SVG_WIDTH == name:
+    #             avg.w = float(value[:subStringSize])
+    #         elif self.SVG_HEIGHT == name:
+    #             avg.h = float(value[:subStringSize])
+    #         elif self.SVG_VIEW_BOX == name:
+    #             avg.viewBox = list(map(float, value.split()))
+        
+    #     if avg.viewBox is None and avg.w != 0 and avg.h != 0:
+    #         avg.viewBox = [0.0] * 4
+    #         avg.viewBox[2] = avg.w
+    #         avg.viewBox[3] = avg.h
+    
+    # Read the content from currentItem, and fill into the SvgLeafNode "child".
+    def extractAllItemsAs(self, svg, child, currentItem, currentGroup):
+        parentNode = currentItem.parentNode
+        hasNodeAttr = False
+        styleContent = ''
+        styleContentBuilder = ''
+        nothingToDisplay = False
+
+        while parentNode and parentNode.nodeName == 'g':
+            # Parse the group's attributes.
+            #print('Printing current patent')
+            self.printlnCommon(parentNode)
+
+            nodeAttr = parentNode.getAttribute(self.SVG_STYLE)
+            # Search for the "display:none", if existed, then skip this item
+            if nodeAttr:
+                styleContent += f'{nodeAttr.value};'
+                #print(f'styleContent is :{styleContent} at number group')
+                if 'display:none' in styleContent:
+                    #print('Found none style, skip the whole group')
+                    nothingToDisplay = True
+                    break
+                else:
+                    hasNodeAttr = True
+            
+            displayAttr = parentNode.getAttribute(self.SVG_DISPLAY)
+            if displayAttr and 'none' == displayAttr.ndoeValue:
+                #print('Found display:none style, skip the whole group')
+                nothingToDisplay = True
+                break
+            parentNode = parentNode.parentNode
+        
+        if nothingToDisplay:
+            # Skip this current whole item.
+            return
+        
+        #print('Print current item')
+        self.printlnCommon(currentItem)
+
+        if hasNodeAttr and styleContent:
+            self.addStyleToPath(child, styleContent)
+
+        if self.SVG_PATH == currentItem.nodeName:
+            self.extractPathItem(svg, child, currentItem, currentGroup)
+        
+        if self.SVG_RECT == currentItem.nodeName:
+            self.extractRectItem(svg, child, currentItem, currentGroup)
+
+        if self.SVG_CIRCLE == currentItem.nodeName:
+            self.extractCircleItem(svg, child, currentItem, currentGroup)
+
+        if self.SVG_POLYGON == currentItem.nodeName:
+            self.extractPolyItem(svg, child, currentItem, currentGroup)
+
+        if self.SVG_LINE == currentItem.nodeName:
+            self.extractLineItem(svg, child, currentItem, currentGroup)
+
+        if self.SVG_ELLIPSE == currentItem.nodeName:
+            self.extractEllipseItem(svg, child, currentItem, currentGroup)
+
+        # Add the type of node as a style class name for child.
+        svg.addAffectedNodeToStyleClass(currentItem.nodeName, child)
+
+    def printlnCommon(self, n):
+        #print(f'nodeName="{n.nodeName}"')
+
+        val = n.namespaceURI
+        if val:
+            #print(f'uri="{val}"')
+            pass
+
+        val = n.prefix
+
+        if val:
+            #print(f'pre="{val}"')
+            pass
+
+        val = n.localName
+        if val:
+            #print(f'local="{val}"')
+            pass
+
+        val = n.nodeValue
+        if val:
+            #print('nodeValue=')
+            if val.strip() == '':
+                # Whitespace
+                #print('[WS]')
+                pass
+            else:
+                #print(f'"{n.ndoeVlaue}"')
+                pass
+
+
+    # Convert polygon element into a path.
+    def extractPolyItem(self, agv, child, currentGroupNode, currentGroup):
+        #print(f'Rect found{currentGroupNode.getTextContent()}')
+        if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
+            attributes = currentGroupNode.attributes
+            for itemIndex in range(attributes):
+                n = attributes.item(itemIndex)
+                name = n.nodeName
+                value = n.nodeValue
+                try:
+                    if self.SVG_STYLE == name:
+                        self.addStyleToPath(child, value)
+                    elif name in self.presentationMap:
+                        child.fillPresentationAttributes(name, value)
+                    elif name in [self.SVG_CLIP_PATH, self.SVG_MASK]:
+                        svgTree.addClipPathAffectedNode(child, currentGroup, value)
+                    elif name == self.SVG_POINTS:
+                        builder = PathBuilder()
+                        splt = re.split(self.SPACE_OR_COMMA, value)
+                        baseX = float(splt[0])
+                        baseY = float(splt[1])
+                        builder.absoluteMoveTo(baseX, baseY)
+                        for i in range(2, len(splt), 2):
+                            x = float(splt[i])
+                            y = float(splt[i + 1])
+                            builder.reltiveLineTo(x - baseX, y - baseY)
+                            baseX = x
+                            baseY = y
+                        if currentGroupNode.nodeName == self.SVG_POLYGON:
+                            builder.relativeClose()
+                        child.setPathData(builder.toString())
+                    elif name == 'class':
+                        svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+                        svgTree.addAffectedNodeToStyleClass(f'{currentGroupNode.nodeName}.{value}', child)
+                except Exception as e:
+                    svgTree.logError(f'Invalid value of "{name}" attribute', n)
+                
+    
+    # Convert rectangle element into a path
+    def extractRectItem(self, svg, child, currentGroupNode, currentGroup):
+        #print(f'Rect found{currentGroupNode.getTextContent()}')
+
+        if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
+            x = 0.0
+            y = 0.0
+            width = float('nan')
+            height = float('nan')
+            rx = 0.0
+            ry = 0.0
+
+            a = currentGroupNode.attributes
+            pureTransparent = False
+            for j in range(a.length):
+                n = a.item(j)
+                name = n.nodeName
+                value = n.nodeValue
+                try:
+                    if self.SVG_STYLE == name:
+                        self.addStyleToPath(child, value)
+                        if 'opacity:0;' in value:
+                            pureTransparent = True
+                    elif name in self.presentationMap:
+                        child.fillPresentationAttributes(name, value)
+                    elif name in [self.SVG_CLIP_PATH, self.SVG_MASK]:
+                        svg.addClipPathAffectedNode(child, currentGroup, value)
+                    elif 'x' == name:
+                        x = svg.parseXValue(value)
+                    elif 'y' == name:
+                        y = parseYValue(value)
+                    elif 'rx' == name:
+                        rx = svg.parseXValue(value)
+                    elif 'ry' == name:
+                        ry = parseYValue(value)
+                    elif 'width' == name:
+                        width = parseXValue(value)
+                    elif 'height' == name:
+                        height = parseYValue(value)
+                    elif 'class' == name:
+                        svgTree.addAffectedNodeToStyleClass(f'rect.{value}', child)
+                        svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+                except Exception as e:
+                    svg.logError(f'Invalid attribute value: {name}="{value}"', currentGroupNode)
+            
+            if not pureTransparent and x != float('nan') and y != float('nan') and width != float('nan') and height != float('nan'):
+                builder = PathBuilder()
+                if rx <= 0 and ry <= 0:
+                    # "M x, y h width v height h -width z"
+                    builder.absoluteMoveTo(x, y)
+                    builder.relativeHorizontalTo(width)
+                    builder.relativeVerticalTo(height)
+                    builder.relativeHorizontalTo(-width)
+                else:
+                    # Refer to http://www.w3.org/TR/SVG/shapes.html#RectElement
+                    assert rx > 0 or ry > 0
+                    if ry == 0:
+                        ry = rx
+                    elif rx == 0:
+                        rx = ry
+                    if width / 2 < rx:
+                        rx = width / 2
+                    if height / 2 < ry:
+                        ry = height / 2
+                    
+                    builder.absoluteMoveTo(x + rx, y)
+                    builder.absoluteLineTo(x + width - rx, y)
+                    builder.absoluteArcTo(rx, ry, False, False, True, x + width, y + ry)
+                    builder.absoluteLineTo(x + width, y + height - ry)
+                    builder.absoluteArcTo(rx, ry, False, False, True, x + width - rx, y + height)
+                    builder.absoluteLineTo(x + rx,  y + height)
+                    builder.absoluteArcTo(rx, ry, False, False, True, x, y + height - ry)
+                    builder.absoluteLineTo(x,  y + ry)
+                    builder.absoluteArcTo(rx, ry, False, False, True, x + rx, y)
+
+                builder.relativeClose()
+                child.setPathData(builder.toString())
+
+    # Convert circle element into a path.
+    def extractCircleItem(self, svg, child, currentGroupNode, currentGroup):
+        #print(f'circle found{currentGroupNode.textContent}')
+        if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
+            cx = 0
+            cy = 0
+            radius = 0
+
+            pureTransparent = False
+            a = currentGroupNode.attributes
+            for i in range(a.length):
+                n = a.item(i)
+                name = n.nodeName
+                value = n.nodeValue
+                if self.SVG_STYLE == name:
+                    self.addStyleToPath(child, value)
+                    if 'opacity:0;' in value:
+                        pureTransparent = True
+                elif name in self.presentationMap:
+                    child.fillPresentationAttributes(name, value)
+                elif name in [self.SVG_CLIP_PATH, self.SVG_MASK]:
+                    svg.addClipPathAffectedNode(child, currentGroup, value)
+                elif 'cx' == name:
+                    cx = float(value)
+                elif 'cy' == name:
+                    cy = float(value)
+                elif 'r' == name:
+                    radius = float(value)
+                elif 'class' == name:
+                    svgTree.addAffectedNodeToStyleClass(f'circle.{value}', child)
+                    svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+
+                if not pureTransparent and cx != float('nan') and cy != float('nan'):
+                    # "M cx cy m -r, 0 a r,r 0 1,1 (r * 2)0 a r,r 0 1,1 -(r * 2),0"
+                    builder = PathBuilder()
+                    builder.absoluteMoveTo(cx, cy)
+                    builder.relativeMoveTo(-radius, 0)
+                    builder.relativeArcTo(radius, radius, False, True, True, 2 * radius, 0)
+                    builder.relativeArcTo(radius, radius, False, True, True, -2 * radius, 0)
+                    child.setPathData(builder.toString())
+    
+    # Convert ellipse element into a path
+    def extraceEllipseItem(self, svg, child, currentGroupNode, currentGroup):
+        # print(f'ellipse found{currentGroupNode.textContent}')
+
+        if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
+            cx = 0.0
+            cy = 0.0
+            rx = 0.0
+            ry = 0.0
+
+            a = currentGroupNode.attributes
+            pureTransparent = False
+            for j in range(a.length):
+                n = a.item(j)
+                name = n.nodeName
+                value = n.nodeValue
+                if self.SVG_STYLE == name:
+                    self.addStyleToPath(child, value)
+                    if 'opacity:0;' in value:
+                        pureTransparent = True
+                elif name in self.presentationMap:
+                    child.fillPresentationAttributes(name, value)
+                elif name in [self.SVG_CLIP_PATH, self.SVG_MASK]:
+                    svg.addClipPathAffectedNode(child, currentGroup, value)
+                elif 'cx' == name:
+                    cx = float(value)
+                elif 'cy' == name:
+                    cy = float(value)
+                elif 'rx' == name:
+                    rx = float(value)
+                elif 'ry' == name:
+                    ry = float(value)
+                elif 'class' == name:
+                    svgTree.addAffectedNodeToStyleClass(f'ellipse.{value}', child)
+                    svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+
+            if not pureTransparent and cx != float('nan') and cy != float('nan') and 0 < rx and 0 < ry:
+                # "M cx -rx, cy a rx,ry 0 1,0 (rx * 2),0 a rx,ry 0 1,0 -(rx * 2),0"
+                builder = PathBuilder()
+                builder.absoluteMoveTo(cx - rx, cy)
+                builder.relativeArcTo(rx, ry, False, True, False, 2 * rx, 0)
+                builder.relativeArcTo(rx, ry, False, True, False, -2 * rx, 0)
+                builder.relativeClose()
+                child.setPathData(builder.toString())
+
+    # Convert line element into a path
+    def extractLineItem(self, svg, child, currentGroupNode, currentGroup):
+        # print(f'line found{currentGroupNode.textContent}')
+
+        if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
+            x1 = 0.0
+            y1 = 0.0
+            x2 = 0.0
+            y2 = 0.0
+
+            a = currentGroupNode.attributes
+            pureTransparent = False
+            for j in range(a.length):
+                n = a.item(j)
+                name = n.nodeName
+                value = n.nodeValue
+                if self.SVG_STYLE == name:
+                    self.addStyleToPath(child, value)
+                    if 'opacity:0;' in value:
+                        pureTransparent = True
+                elif name in self.presentationMap:
+                    child.fillPresentationAttributes(name, value)
+                elif name in [self.SVG_CLIP_PATH, self.SVG_MASK]:
+                    svg.addClipPathAffectedNode(child, currentGroup, value)
+                elif 'x1' == name:
+                    x1 = float(value)
+                elif 'y1' == name:
+                    y1 = float(value)
+                elif 'x2' == name:
+                    x2 = float(value)
+                elif 'y2' == name:
+                    y2 = float(value)
+                elif 'class' == name:
+                    svgTree.addAffectedNodeToStyleClass(f'line.{value}', child)
+                    svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+
+            if pureTransparent == False and avg and x1 != float('nan') and y1 != float('nan') and x2 != float('nan') and y2 != float('nan'):
+                # "M x1, y1 L x2, y2"
+                builder = PathBuilder()
+                builder.absoluteMoveTo(x1, y1)
+                builder.absoluteLineTo(x2, y2)
+                child.setPathData(builder.toString())
+
+    def extractPathItem(self, svg, child, currentGroupNode, currentGroup):
+        #print(f'Path found{currentGroupNode.textContent}')
+
+        if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
+            a = currentGroupNode.attributes
+            for i in range(a.length):
+                n = a.item(i)
+                name = n.nodeName
+                value = n.nodeValue
+                if self.SVG_STYLE == name:
+                    self.addStyleToPath(child, value)
+                elif name in self.presentationMap:
+                    child.fillPresentationAttributes(name, value)
+                elif name in [self.SVG_CLIP_PATH, self.SVG_MASK]:
+                    svg.addClipPathAffectedNode(child, currentGroup, value)
+                elif self.SVG_D == name:
+                    pathData = re.sub(r'(\d)-', r'\1,-', value)
+                    child.setPathData(pathData)
+                elif 'class' == name:
+                    svgTree.addAffectedNodeToStyleClass(f'path.{value}', child)
+                    svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+
+    def addStyleToPath(self, path, value):
+        # print(f'Style found is{value}')
+        if value:
+            for subStyle in reversed(value.split(';')):
+                nameValue = subStyle.split(':')
+                if len(nameValue) == 2 and nameValue[0] and nameValue[1]:
+                    attr = nameValue[0].strip()
+                    val = nameValue[1].strip()
+                    if attr in self.presentationMap:
+                        path.fillPresentationAttributes(attr, val)
+                    elif attr == self.SVG_OPACITY:
+                        # TODO: This is hacky, since we don't have a group level
+                        # android:opacity. This only works when the path didn't overlap.
+                        path.fillPresentationAttributes(self.SVG_FILL_OPACITY, nameValue[1])
+                    
+                    # We need to handle a clip-path or mask within the style in a different way
+                    # then other styles. We treat it as an attribute clip-path = "#url(name)".
+                    if attr in [self.SVG_CLIP_PATH, self.SVG_MASK]:
+                        parentNode = path.getTree().findParent(path)
+                        if parentNode:
+                            path.getTree().addClipPathAffectedNode(path, parentNode, val)
+
+    def parseFloatOrDefault(self, value, defaultValue):
+        if value:
+            try:
+                return float(value)
+            except Exception as e:
+                pass
+        return defaultValue
+    
+    # def getSizeString(self, w, h, scaleFactor):
+    #     return f'        android:width="{int(w * scaleFactor)}dp"\n        android:height="{int(h * scaleFactor)}dp"\n'
+    
+    def writeFile(self, streamWriter, svgTree):
+        svgTree.writeXml(streamWriter)
+
+
+    #     streamWriter.write(self.head)
+    #     finalWidth = svgTree.w
+    #     finalHeight = svgTree.h
+    #     streamWriter.write(self.getSizeString(finalWidth, finalHeight, svgTree.mScaleFactor))
+    #     streamWriter.write(f'        android:viewportWidth="{svgTree.w}"\n')
+    #     streamWriter.write(f'        android:viewportHeight="{svgTree.h}">\n')
+    #     svgTree.normalize()
+    #     # TODO: this has to happen in the tree mode!!!
+    #     self.writeXML(svgTree, streamWriter)
+    #     streamWriter.write('</vector>\n')
+
+    # def writeXML(self, svgTree, streamWriter):
+    #     svgTree.getRoot().writeXML(streamWriter)
+
+    # Converts an SVG file into VectorDrawable's XML content, if no error is found.
+    # @param inputSvg the input SVG file
+    # @param outStream the converted VectorDrawable's content. This can be empty if there is any
+    #     error found during parsing
+    # @return the error message that combines all logged errors and warnings, or an empty string if
+    #     there were no errors
+    def parseSvgToXml(self, inputSVG, streamWriter):
+        svgTree = self.parse(inputSVG)
+        if svgTree.getHasLeafNode():
+            self.writeFile(streamWriter, svgTree)
+        return svgTree.getErrorMessage()

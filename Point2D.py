@@ -1,0 +1,208 @@
+from abc import *
+from typing import Self
+
+import math
+# The {@code Point2D} class defines a point representing a location
+# in {@code (x,y)} coordinate space.
+# <p>
+# This class is only the abstract superclass for all objects that
+# store a 2D coordinate.
+# The actual storage representation of the coordinates is left to
+# the subclass.
+# @author      Jim Graham
+# @since 1.2
+class Point2D(metaclass = ABCMeta):
+    @abstractmethod
+    def getX(self):
+        pass
+
+    @abstractmethod
+    def getY(self):
+        pass
+
+    @abstractmethod
+    def setLocation(self, x, y):
+        pass
+
+    # Sets the location of this {@code Point2D} to the same
+    # coordinates as the specified {@code Point2D} object.
+    # @param p the specified {@code Point2D} to which to set
+    # this {@code Point2D}
+    # @since 1.2
+    def setLocation(p):
+        self.setLocation(p.getX(), p.getY())
+
+    # Returns the square of the distance between two points.
+    # @param x1 the X coordinate of the first specified point
+    # @param y1 the Y coordinate of the first specified point
+    # @param x2 the X coordinate of the second specified point
+    # @param y2 the Y coordinate of the second specified point
+    # @return the square of the distance between the two
+    # sets of specified coordinates.
+    # @since 1.2
+    @classmethod
+    def distanceSq(cls, x1, y1, x2, y2):
+        x1 -= x2
+        y1 -= y2
+        return x1 * x1 + y1 * y1
+
+    # Returns the distance between two points.
+    # @param x1 the X coordinate of the first specified point
+    # @param y1 the Y coordinate of the first specified point
+    # @param x2 the X coordinate of the second specified point
+    # @param y2 the Y coordinate of the second specified point
+    # @return the distance between the two sets of specified
+    # coordinates.
+    # @since 1.2
+    @classmethod
+    def distance(cls, x1, y1, x2, y2):
+        x1 -= x2
+        y1 -= y2
+        return math.sqrt(x1 * x1 + y1 * y1)
+
+    # Returns the square of the distance from this
+    # {@code Point2D} to a specified point.
+    # @param px the X coordinate of the specified point to be measured
+    #           against this {@code Point2D}
+    # @param py the Y coordinate of the specified point to be measured
+    #           against this {@code Point2D}
+    # @return the square of the distance between this
+    # {@code Point2D} and the specified point.
+    # @since 1.2
+    def distanceSq(self, px, py):
+        px -= self.getX()
+        py -= self.getY()
+        return px * px + py * py
+
+    # Returns the square of the distance from this
+    # {@code Point2D} to a specified {@code Point2D}.
+    # @param pt the specified point to be measured
+    #           against this {@code Point2D}
+    # @return the square of the distance between this
+    # {@code Point2D} to a specified {@code Point2D}.
+    # @since 1.2
+    def distanceSq(self, pt):
+        px = pt.getX() - self.getX()
+        py = pt.getY() - self.getY()
+        return px * px + py * py
+
+    # Returns the distance from this {@code Point2D} to
+    # a specified point.
+    # @param px the X coordinate of the specified point to be measured
+    #           against this {@code Point2D}
+    # @param py the Y coordinate of the specified point to be measured
+    #           against this {@code Point2D}
+    # @return the distance between this {@code Point2D}
+    # and a specified point.
+    # @since 1.2
+    def distance(self, px, py):
+        px -= getX()
+        py -= getY()
+        return math.sqrt(px * px + py * py)
+
+    # Returns the distance from this {@code Point2D} to a
+    # specified {@code Point2D}.
+    # @param pt the specified point to be measured
+    #           against this {@code Point2D}
+    # @return the distance between this {@code Point2D} and
+    # the specified {@code Point2D}.
+    # @since 1.2
+    def distance(self, pt):
+        px = pt.getX() - self.getX()
+        py = pt.getY() - self.getY()
+        return math.sqrt(px * px + py * py)
+
+    # Creates a new object of the same class and with the
+    # same contents as this object.
+    # @return     a clone of this instance.
+    # @throws  OutOfMemoryError            if there is not enough memory.
+    # @see        java.lang.Cloneable
+    # @since      1.2
+    # public Object clone() {
+    #     try {
+    #         return super.clone();
+    #     } catch (CloneNotSupportedException e) {
+    #         // this shouldn't happen, since we are Cloneable
+    #         throw new InternalError(e);
+    #     }
+    # }
+
+    # /**
+    # # Returns the hashcode for this {@code Point2D}.
+    # # @return      a hash code for this {@code Point2D}.
+    # #/
+    # public int hashCode() {
+    #     long bits = java.lang.Double.doubleToLongBits(getX());
+    #     bits ^= java.lang.Double.doubleToLongBits(getY())# 31;
+    #     return (((int) bits) ^ ((int) (bits >> 32)));
+    # }
+
+    # /**
+    # # Determines whether or not two points are equal. Two instances of
+    # # {@code Point2D} are equal if the values of their
+    # # {@code x} and {@code y} member fields, representing
+    # # their position in the coordinate space, are the same.
+    # # @param obj an object to be compared with this {@code Point2D}
+    # # @return {@code true} if the object to be compared is
+    # #         an instance of {@code Point2D} and has
+    # #         the same values; {@code false} otherwise.
+    # # @since 1.2
+    # #/
+    # public boolean equals(Object obj) {
+    #     if (obj instanceof Point2D) {
+    #         Point2D p2d = (Point2D) obj;
+    #         return (getX() == p2d.getX()) && (getY() == p2d.getY());
+    #     }
+    #     return super.equals(obj);
+    # }
+
+    # The {@code Float} class defines a point specified in float
+    # precision.
+    # @since 1.2
+
+class Point2DF(Point2D):
+    # Constructs and initializes a {@code Point2D} with
+    # the specified coordinates.
+    # @param x the X coordinate of the newly
+    #          constructed {@code Point2D}
+    # @param y the Y coordinate of the newly
+    #          constructed {@code Point2D}
+    # @since 1.2
+    def __init__(self, x = 0.0, y = 0.0):
+        # The X coordinate of this {@code Point2D}.
+        # @since 1.2
+        # @serial
+        self.x = x
+
+        # The Y coordinate of this {@code Point2D}.
+        # @since 1.2
+        # @serial
+        self.y = y
+
+    # @since 1.2
+    #/
+    def getX(self):
+        return self.x
+
+    # @since 1.2
+    def getY(self):
+        return self.y
+
+    # Sets the location of this {@code Point2D} to the
+    # specified {@code float} coordinates.
+    # @param x the new X coordinate of this {@code Point2D}
+    # @param y the new Y coordinate of this {@code Point2D}
+    # @since 1.2
+    def setLocation(self, x, y):
+        self.x = x
+        self.y = Y
+
+    # Returns a {@code String} that represents the value
+    # of this {@code Point2D}.
+    # @return a string representation of this {@code Point2D}.
+    # @since 1.2
+    def toString(self):
+        return f'Point2D.Float[{x}, {y}]'
+
+    # @Serial
+    # private static final long serialVersionUID = -2870572449815403710L;
