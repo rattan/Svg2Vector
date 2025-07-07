@@ -52,29 +52,6 @@ class VdPath(VdElement):
         'A': 7
     }
 
-    def __init__(self, tp, params):
-        self.fillGradient = None
-        self.strokeGradient = None
-        self.mNodeList = []
-        self.mStrokeColor = 0
-        self.mFillColor = 0
-        self.mStrokeWidth = 0.0
-        self.mStrokeLineCap = 1
-        self.mStrokeLineJoin = 1
-        self.mStrokeMiterlimit = 4
-        self.mStrokeAlpha = 1.0
-        self.mFillAlpha = 1.0
-        self.mFillType = PathIterator.WIND_NON_ZERO
-        # TODO: support trim path.
-        self.mTrimPathStart = 0.0
-        self.mTrimPathEnd = 1.0
-        self.mTrimPathOffset = 0.0
-
-    # def toPath(self, path: Path2D):
-    #     path.reset()
-    #     if not self.mNodeList:
-    #         VdNodeRender.createPath(self.mNodeList, path)
-
     class Node:
         def __init__(self, tp: str, params: list):
             self.mType = tp
@@ -96,7 +73,7 @@ class VdPath(VdElement):
             return False
 
         @classmethod
-        def NodeListToString(cls, nodes: list, svgTree: 'SvgTree'):
+        def NodeListToString(cls, nodes: list, svgTree: 'SvgTree') -> str:
             result = ''
             for node in nodes:
                 result += node.mType
@@ -118,29 +95,29 @@ class VdPath(VdElement):
             return result
 
         @classmethod
-        def transformm(cls, totalTransform: AffineTransform, nodes: list):
+        def transform(cls, totalTransform: AffineTransform, nodes: list):
             currentPoint = Point2DF()
             currentSegmentStartPoint = Point2DF()
-            previousType = cls.INIT_TYPE
+            previousType = VdPath.INIT_TYPE
             for n in nodes:
-                n.transform(totalTransform, currentPpoint, currentSegmentStartPoint, previousType)
+                n.transformImpl(totalTransform, currentPoint, currentSegmentStartPoint, previousType)
                 previousType = n.mType
 
-        def transform(self, totalTransform: AffineTransform, currentPoint: Point2DF, currentSegmentStartPoint: Point2DF, previousType: str):
+        def transformImpl(self, totalTransform: AffineTransform, currentPoint: Point2DF, currentSegmentStartPoint: Point2DF, previousType: str):
             # For horizontal and vertical lines, we have to convert to LineTo with 2 parameters.
             # And for arcTo, we also need to isolate the parameters for transformation.
             # Therefore, looping will be necessary for such commands.
             #
             # Note that if the matrix is translation only, then we can save many computations.
             paramsLen = len(self.mParams)
-            tempParams = [0.0] * paramsLen
+            tempParams = [0.0] * paramsLen * 2
             # These have to be pre-transformed values. In other words, the same as it is
             # in the pathData.
             currentX = currentPoint.x
             currentY = currentPoint.y
             currentSegmentStartX = currentSegmentStartPoint.x
             currentSegmentStartY = currentSegmentStartPoint.y
-            step = self.COMMAND_STEP_MAP.get(mType)
+            step = VdPath.COMMAND_STEP_MAP.get(self.mType)
             if self.mType in ['z', 'Z']:
                 currnetX = currentSegmentStartX
                 currentY = currentSegmentStartY
@@ -149,16 +126,16 @@ class VdPath(VdElement):
                 currentSegmentStartY = self.mParams[1]
                 currentX = self.mParams[paramsLen - 2]
                 currentY = self.mParams[paramsLen - 1]
-                totalTransform.transform(self.mParams, 0, self.mParams, 0, paramsLen / 2)
+                totalTransform.transform5(self.mParams, 0, self.mParams, 0, paramsLen / 2)
             elif self.mType in ['L', 'T', 'C', 'S', 'Q']:
                 currentX = self.mParams[paramsLen - 2]
                 currentY = self.mParams[paramsLen - 1]
-                totalTransform.transform(self.mParams, 0, self.mParams, 0, paramsLen / 2)
+                totalTransform.transform5(self.mParams, 0, self.mParams, 0, paramsLen / 2)
             elif self.mType == 'm':
                 if previousType == 'z' or previousType == 'Z':
                     # Replace 'm' with 'M' to work around a bug in API 21 that is triggered
                     # when 'm' follows 'z'.
-                    mType = 'M'
+                    self.mType = 'M'
                     self.mParams[0] += currentSegmentStartX
                     self.mParams[1] += currentSegmentStartY
                     currentSegmentStartX = self.mParams[0]   # Start a new segment.
@@ -168,7 +145,7 @@ class VdPath(VdElement):
                         self.mParams[i + 1] += self.mParams[i + 1 - step]
                     currentX = self.mParams[paramsLen - 2]
                     currentY = self.mParams[paramsLen - 1]
-                    totalTransform.transform(self.mParams, 0, self.mParams, 0, paramsLen / 2)
+                    totalTransform.transform5(self.mParams, 0, self.mParams, 0, paramsLen / 2)
                 else:
                     headLen = 2
                     currentX += self.mParams[0]
@@ -178,7 +155,7 @@ class VdPath(VdElement):
                     if previousType == self.INIT_TYPE:
                         # 'm' at the start of a path is handled similar to 'M'.
                         # The coordinates are transformed as absolute.
-                        totalTransform.transform(self.mParams, 0, self.mParams, 0, headLen / 2)
+                        totalTransform.transform5(self.mParams, 0, self.mParams, 0, headLen / 2)
                     elif not self.isTranslationOnly(totalTransform):
                         self.deltaTransform(totalTransform, self.mParams, 0, headLen)
                     for i in range(headLen, paramsLen, step):
@@ -187,7 +164,7 @@ class VdPath(VdElement):
                     if not self.isTranslationOnly(totalTransform):
                         self.deltaTransform(totalTransform, self.mParams, headLen, paramsLen - headLen)
             elif self.mType in ['l', 't', 'c', 's', 'q']:
-                for i in range(0, paramsLen - setp + 1, step):
+                for i in range(0, paramsLen - step + 1, step):
                     currentX += self.mParams[i + step - 2]
                     currentY += self.mParams[i + step - 1]
                 if not self.isTranslationOnly(totalTransform):
@@ -197,8 +174,8 @@ class VdPath(VdElement):
                 for i in range(paramsLen):
                     tempParams[i * 2] = self.mParams[i]
                     tempParams[i * 2 + 1] = currentY
-                    currentX = self.mParas[i]
-                totalTransform.transform(tempParams, 0, tempParams, 0, paramsLen)
+                    currentX = self.mParams[i]
+                totalTransform.transform5(tempParams, 0, tempParams, 0, paramsLen)
                 self.mParams = tempParams
             elif self.mType == 'V':
                 self.mType = 'L'
@@ -206,13 +183,13 @@ class VdPath(VdElement):
                     tempParams[i * 2] = currentX
                     tempParams[i * 2 + 1] = self.mParams[i]
                     currentY = self.mParams[i]
-                totalTransform.transform(tempParams, 0, tempParams, 0, paramsLen)
+                totalTransform.transform5(tempParams, 0, tempParams, 0, paramsLen)
                 self.mParams = tempParams
             elif self.mType == 'h':
                 for i in range(paramsLen):
                     currentX += self.mParams[i]
                     # tempParams may not be used but is assigned here to avoid a second loop.
-                    tempParams[i * 2] = mParams[i]
+                    tempParams[i * 2] = self.mParams[i]
                     tempParams[i * 2 + 1] = 0
                 if not self.isTranslationOnly(totalTransform):
                     mType = 'l'
@@ -242,9 +219,9 @@ class VdPath(VdElement):
                     # [5, 6]
                     currentX = self.mParams[i + 5]
                     currentY = self.mParams[i + 6]
-                    totalTransform.transform(self.mParams, i + 5, self.mParams, i + 5, 1)
+                    totalTransform.transform5(self.mParams, i + 5, self.mParams, i + 5, 1)
             elif self.mType == 'a':
-                for i in ragne(0, paramsLen - step + 1, step):
+                for i in range(0, paramsLen - step + 1, step):
                     oldCurrentX = currentX
                     oldCurrentY = currentY
                     currentX += self.mParams[i + 5]

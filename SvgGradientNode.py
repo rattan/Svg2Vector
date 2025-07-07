@@ -16,40 +16,42 @@ import os
 
 # Represents an SVG gradient that is referenced by a SvgLeafNode.
 class SvgGradientNode(SvgNode):
+    # Maps the gradient vector's coordinate names to an int for easier array lookup.
+    vectorCoordinateMap = {
+        'x1': 0,
+        'y1': 1,
+        'x2': 2,
+        'y2': 3,
+    }
+    gradientMap = {
+        'x1': 'android:startX',
+        'y1': 'android:startY',
+        'x2': 'android:endX',
+        'y2': 'android:endY',
+        'cx': 'android:centerX',
+        'cy': 'android:centerY',
+        'r': 'android:gradientRadius',
+        'spreadMethod': 'android:tileMode',
+        'gradientUnits': '',
+        'gradientTransform': '',
+        'gradientType': 'android:type',
+    }
+
     def __init__(self, svgTree: 'SvgTree', element: minidom.Element, nodeName: str):
         super().__init__(svgTree, element, nodeName)
         self.mGradientStops = []
-        self.mSvgLeafNode
+        self.mSvgLeafNode = None
         # Bounding box of mSvgLeafNode.
-        self.mBoundingBox
-        self.mGradientUsage
-        # Maps the gradient vector's coordinate names to an int for easier array lookup.
-        self.vectorCoordinateMap = {
-            'x1': 0,
-            'y1': 1,
-            'x2': 2,
-            'y2': 3,
-        }
-        self.gradientMap = {
-            'x1': 'android:startX',
-            'y1': 'android:startY',
-            'x2': 'android:endX',
-            'y2': 'android:endY',
-            'cx': 'android:centerX',
-            'cy': 'android:centerY',
-            'r': 'android:gradientRadius',
-            'spreadMethod': 'android:tileMode',
-            'gradientUnits': '',
-            'gradientTransform': '',
-            'gradientType': 'android:type',
-        }
+        self.mBoundingBox = None
+        self.mGradientUsage = None
 
-    def deepCopy(self):
+
+    def deepCopy(self) -> Self:
         newInstance = SvgGradientNode(self.getTree(), self.mDocumentElement, self.getName())
         newInstance.copyFrom(self)
         return newInstance
 
-    def isGroupNode(self):
+    def isGroupNode(self) -> bool:
         return False
 
     # We do not copy mSvgLeafNode, boundingBox, or mGradientUsage because they will be set after
@@ -66,7 +68,7 @@ class SvgGradientNode(SvgNode):
     # Resolves the 'href' reference to a template gradient element.
     # @return True if the reference has been resolved, or False if it cannot be resolved at this
     #     time due to a dependency on an unresolved node
-    def resolveHref(self, svgTree: 'SvgTree'):
+    def resolveHref(self, svgTree: 'SvgTree') -> bool:
         _id = self.getHrefId()
         referencedNode = svgTree.getSvgNodeFromId(_id) if _id else None 
         if referencedNode is SvgGradientNode:
@@ -106,14 +108,14 @@ class SvgGradientNode(SvgNode):
             self.mValue = value
             self.mIsPercentage = isPercentage
         
-        def getValue(self):
+        def getValue(self) -> float:
             return self.mValue
         
-        def isPercentage(self):
+        def isPercentage(self) -> float:
             return self.mIsPercentage
 
     #Parses the gradient coordinate value given as a percentage or a length. Returns a double.
-    def getGradientCoordinate(self, x: str, defaultValue: float):
+    def getGradientCoordinate(self, x: str, defaultValue: float) -> GradientCoordResult:
         if x not in self.mVdAttributesMap:
             return GradientCoordResult(defaultValue, False)
         
@@ -159,7 +161,7 @@ class SvgGradientNode(SvgNode):
             return  # The gradient is not visible because it doesn't occupy any area.
         
         writer.write(indent)
-        if mGradientUsage == GradientUsage.FILL:
+        if mGradientUsage == self.GradientUsage.FILL:
             writer.write('<aapt:attr name="android:fillColor">')
         else:
             writer.write('<aapt:attr name="android:strokeColor">')

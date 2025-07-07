@@ -8,7 +8,7 @@ class EllipseSolver:
     # <p>
     # Note that all the x y values are in absolute coordinates, such that we can apply
     # the transform directly.
-    def __init__(self, totalTransform, currentX, currentY, rx, ry, xAxisRotation, largeArcFlag, sweepFlag, destX, destY):
+    def __init__(self, totalTransform: AffineTransform, currentX: float, currentY: float, rx: float, ry: float, xAxisRotation: float, largeArcFlag: float, sweepFlag: float, destX: float, destY: float):
         self.mMajorAxis = 0.0
         self.mMinorAxis = 0.0
         self.mRotationDegree = 0.0
@@ -40,10 +40,10 @@ class EllipseSolver:
         middlePoint.x += originalCenter.x
         middlePoint.y += originalCenter.y
         # Transform 3 points and center point into destination.
-        mDstMiddlePoint = totalTransform.transform(middlePoint, None)
-        mDstMajorAxisPoint = totalTransform.transform(majorAxisPoint, None)
-        mDstMinorAxisPoint = totalTransform.transform(minorAxisPoint, None)
-        dstCenter = totalTransform.transform(originalCenter, None)
+        mDstMiddlePoint = totalTransform.transform2(middlePoint, None)
+        mDstMajorAxisPoint = totalTransform.transform2(majorAxisPoint, None)
+        mDstMinorAxisPoint = totalTransform.transform2(minorAxisPoint, None)
+        dstCenter = totalTransform.transform2(originalCenter, None)
         dstCenterX = dstCenter.getX()
         dstCenterY = dstCenter.getY()
         # Compute the relative 3 points:
@@ -65,7 +65,7 @@ class EllipseSolver:
     # Here, we use the cross product to figure out the direction of the 3 control points for the
     # src and dst ellipse.
     @classmethod
-    def computeDirectionChange(cls, middlePoint: Point2DF, majorAxisPoint: Point2DF, minorAxisPoint: Point2DF, dstMiddlePoint: Point2DF, dstMajorAxisPoint: Point2DF, dstMinorAxisPoint: Point2DF):
+    def computeDirectionChange(cls, middlePoint: Point2DF, majorAxisPoint: Point2DF, minorAxisPoint: Point2DF, dstMiddlePoint: Point2DF, dstMajorAxisPoint: Point2DF, dstMinorAxisPoint: Point2DF) -> float:
         # Compute both cross product, then compare the sign.
         srcCrossProduct = self.getCrossProduct(middlePoint, majorAxisPoint, minorAxisPoint)
         dstCrossProduct = self.getCrossProduct(dstMiddlePoint, dstMajorAxisPoint, dstMinorAxisPoint)
@@ -82,7 +82,7 @@ class EllipseSolver:
     # Returns true if there is an error, either due to the ellipse not being specified
     # correctly or some computation error. This error is ignorable, but the output ellipse
     # will not be correct.
-    def computeABThetaFromControlPoints(sefl, relMiddleX: float, relMiddleY: float, relativeMajorAxisPointX: float, relativeMajorAxisPointY: float, relativeMinorAxisPointX: float, relativeMinorAxisPointY: float):
+    def computeABThetaFromControlPoints(self, relMiddleX: float, relMiddleY: float, relativeMajorAxisPointX: float, relativeMajorAxisPointY: float, relativeMinorAxisPointX: float, relativeMinorAxisPointY: float) -> bool:
         m11 = relMiddleX * relMiddleX
         m12 = relMiddleX * relMiddleY
         m13 = relMiddleY * relMiddleY
@@ -127,7 +127,7 @@ class EllipseSolver:
         return False
 
     @classmethod
-    def computeOriginalCenter(cls, x1: float, y1: float, rx: float, ry: float, phi: float, largeArc :bool, sweep: bool, x2: float, y2: float):
+    def computeOriginalCenter(cls, x1: float, y1: float, rx: float, ry: float, phi: float, largeArc :bool, sweep: bool, x2: float, y2: float) -> Point2DF:
         cosPhi = math.cos(phi)
         sinPhi = math.sin(phi)
         xDelta = (x1 - x2) / 2
@@ -151,26 +151,24 @@ class EllipseSolver:
         yCenter = (y1 + y2) / 2
         return Point2DF(cosPhi * tempCx - sinPhi * tempCy + xCenter, sinPhi * tempCx + cosPhi * tempCy + yCenter)
 
-    def getMajorAxis(self):
+    def getMajorAxis(self) -> float:
         return self.mMajorAxis
 
-    def getMinorAxis(self):
+    def getMinorAxis(self) -> float:
         return self.mMinorAxis
 
-    def getRotationDegree(self):
+    def getRotationDegree(self) -> float:
         return self.mRotationDegree
 
-    def getDirectionChanged(self):
+    def getDirectionChanged(self) -> bool:
         return self.mDirectionChanged
 
     # Rotates a point by the given angle.
-    #
     # @param inPoint the point to rotate
     # @param radians the rotation angle in radians
     # @return the rotated point
     @classmethod
-    def rotatePoint2D(cls, inPoint: Point2DF, radians: double) {
-        cos = math.cos(radians);
-        sin = math.sin(radians);
+    def rotatePoint2D(cls, inPoint: Point2DF, radians: double): Point2DF:
+        cos = math.cos(radians)
+        sin = math.sin(radians)
         return Point2DF(inPoint.x * cos - inPoint.y * sin, inPoint.x * sin + inPoint.y * cos)
-    }

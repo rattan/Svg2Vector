@@ -26,27 +26,6 @@ class AffineTransform:
     HI_SHEAR = APPLY_SHEAR << HI_SHIFT
 
     def __init__(self, m00: float = 1.0, m10: float = 0.0, m01: float = 0.0, m11: float = 1.0, m02: float = 0.0, m12: float = 0.0):
-        # self.TYPE_UNKNOWN = -1
-        # self.TYPE_IDENTITY = 0
-        # self.TYPE_TRANSLATION = 1
-        # self.TYPE_UNIFORM_SCALE = 2
-        # self.TYPE_GENERAL_SCALE = 4
-        # self.TYPE_MASK_SCALE = self.TYPE_UNIFORM_SCALE | self.TYPE_GENERAL_SCALE
-        # self.TYPE_FLIP = 64
-        # self.TYPE_QUADRANT_ROTATION = 8
-        # self.TYPE_GENERAL_ROTATION = 16
-        # self.TYPE_MASK_ROTATION = self.TYPE_QUADRANT_ROTATION | self.TYPE_GENERAL_ROTATION
-        # self.TYPE_GENERAL_TRANSFORM = 32
-        # self.APPLY_IDENTITY = 0
-        # self.APPLY_TRANSLATE = 1
-        # self.APPLY_SCALE = 2
-        # self.APPLY_SHEAR = 4
-        # self.HI_SHIFT = 3
-        # self.HI_IDENTITY = self.APPLY_IDENTITY << self.HI_SHIFT
-        # self.HI_TRANSLATE = self.APPLY_TRANSLATE << self.HI_SHIFT
-        # self.HI_SCALE = self.APPLY_SCALE << self.HI_SHIFT
-        # self.HI_SHEAR = self.APPLY_SHEAR << self.HI_SHIFT
-
         self.m00 = m00
         self.m10 = m10
         self.m01 = m01
@@ -254,7 +233,7 @@ class AffineTransform:
     # @return the {@code ptDst} after transforming
     # {@code ptSrc} and storing the result in {@code ptDst}.
     # @since 1.2
-    def transform(ptSrc, ptDst):
+    def transform2(self, ptSrc, ptDst):
         if ptDst is None:
             ptDst = Point2DF()
         
@@ -279,6 +258,144 @@ class AffineTransform:
             self.stateError()
             return None
         return tpDst
+
+    # Transforms an array of floating point coordinates by this transform.
+    # The two coordinate array sections can be exactly the same or
+    # can be overlapping sections of the same array without affecting the
+    # validity of the results.
+    # This method ensures that no source coordinates are overwritten by a
+    # previous operation before they can be transformed.
+    # The coordinates are stored in the arrays starting at the specified
+    # offset in the order {@code [x0, y0, x1, y1, ..., xn, yn]}.
+    # @param srcPts the array containing the source point coordinates.
+    # Each point is stored as a pair of x,&nbsp;y coordinates.
+    # @param srcOff the offset to the first point to be transformed
+    # in the source array
+    # @param dstPts the array into which the transformed point coordinates
+    # are returned.  Each point is stored as a pair of x,&nbsp;y
+    # coordinates.
+    # @param dstOff the offset to the location of the first
+    # transformed point that is stored in the destination array
+    # @param numPts the number of points to be transformed
+    # @since 1.2
+    def transform5(self, srcPts: list[float], srcOff: int, dstPts: list[float], dstOff: int, numPts: int):
+        M00 = 0.0
+        M01 = 0.0
+        M02 = 0.0
+        M10 = 0.0
+        M11 = 0.0
+        M12 = 0.0
+        if dstPts is not srcPts and srcOff < dstOff and desOff < srcOff + numPts * 2:
+            # If the arrays overlap partially with the destination higher
+            # than the source and we transform the coordinates normally
+            # we would overwrite some of the later source coordinates
+            # with results of previous transformations.
+            # To get around this we use arraycopy to copy the points
+            # to their final destination with correct overwrite
+            # handling and then transform them in place in the new
+            # safer location.
+            dstPts[dstOff:dstOff + numPts * 2] = srcPts[srcOff:srcOff + numPts * 2]
+            # srcPts = dstPts;         // They are known to be equal.
+            srcOff = dstOff
+        if self.state == self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE:
+            M00 = self.m00
+            M01 = self.m01
+            M02 = self.m02
+            M10 = self.m10
+            M11 = self.m11
+            M12 = self.m12
+            for _ in range(numPts):
+                x = srcPts[srcOff]
+                srcOff += 1
+                y = srcPts[srcOff]
+                srcOff += 1
+                dstPts[dstOff] = float(M00 * x + M01 * y + M02)
+                dstOff += 1
+                dstPts[dstOff] = float(M10 * x + M11 * y + M12)
+                dstOff += 1
+            return
+        elif self.state == self.APPLY_SHEAR | self.APPLY_SCALE:
+            M00 = self.m00
+            M01 = self.m01
+            M10 = self.m10
+            M11 = self.m11
+            for _ in range(numPts):
+                x = srcPts[srcOff]
+                srcOff += 1
+                y = srcPts[srcOff]
+                srcOff += 1
+                dstPts[dstOff] = float(M00 * x + M01 * y)
+                dstOff += 1
+                dstPts[dstOff] = float(M10 * x + M11 * y)
+                dstOff += 1
+            return
+        elif self.state == self.APPLY_SHEAR | self.APPLY_TRANSLATE:
+            M01 = self.m01
+            M02 = self.m02
+            M10 = self.m10
+            M12 = self.m12
+            for _ in range(numPts):
+                x = srcPts[srcOff]
+                srcOff += 1
+                dstPts[dstOff] = float(M01 * srcPts[srcOff] + M02)
+                srcOff += 1
+                dstOff += 1
+                dstPts[dstOff] = float(M10 * x + M12)
+                dstOff += 1
+            return
+        elif self.state == self.APPLY_SHEAR:
+            M01 = self.m01
+            M10 = self.m10
+            for _ in range(numPts):
+                x = srcPts[srcOff]
+                srcOff += 1
+                dstPts[dstOff] = float(M01 * srcPts[srcOff])
+                srcOff += 1
+                dstOff += 1
+                dstPts[dstOff] = float(M10 * x)
+                dstOff += 1
+            return
+        elif self.state == self.APPLY_SCALE | self.APPLY_TRANSLATE:
+            M00 = self.m00
+            M02 = self.m02
+            M11 = self.m11
+            M12 = self.m12
+            for _ in range(numPts):
+                dstPts[dstOff] = float(M00 * srcPts[srcOff] + M02)
+                srcOff += 1
+                dstOff += 1
+                dstPts[dstOff] = float(M11 * srcPts[srcOff] + M12)
+                srcOff += 1
+                dstOff += 1
+            return
+        elif self.state == self.APPLY_SCALE:
+            M00 = self.m00
+            M11 = self.m11
+            for _ in range(numPts):
+                dstPts[dstOff] = float(M00 * srcPts[srcOff])
+                srcOff += 1
+                dstOff += 1
+                dstPts[dstOff] = float(M11 * srcPts[srcOff])
+                srcOff += 1
+                dstOff += 1
+            return
+        elif self.state == self.APPLY_TRANSLATE:
+            M02 = self.m02
+            M12 = self.m12
+            for _ in range(numPts):
+                dstPts[dstOff] = float(srcPts[srcOff] + M02)
+                srcOff += 1
+                dstOff += 1
+                dstPts[dstOff] = float(srcPts[srcOff] + M12)
+                srcOff += 1
+                dstOff += 1
+            return
+        elif self.state == self.APPLY_IDENTITY:
+            if srcPts is not dstPts or srcOff != dstOff:
+                dstPts[dstOff:dstOff + numPts * 2] = srcPts[srcOff:srcOff + numPts * 2]
+            return
+        else:
+            self.state_error()
 
     # Sets this transform to the inverse of itself.
     # The inverse transform Tx' of this transform Tx
@@ -1180,7 +1297,7 @@ class AffineTransform:
     # @return {@code true} if this {@code AffineTransform} is
     # an identity transform; {@code false} otherwise.
     # @since 1.2
-    def isIdentity(self):
+    def isIdentity(self) -> bool:
         return self.state == self.APPLY_IDENTITY or (self.getType() == self.TYPE_IDENTITY)
 
     def stateError(self):

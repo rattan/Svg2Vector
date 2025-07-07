@@ -7,7 +7,7 @@ class XmlUtils:
     # @param value the value to be formatted
     # @return the corresponding XML string for the value
     @classmethod
-    def formatFloatValue(cls, value: float):
+    def formatFloatValue(cls, value: float) -> str:
         if not math.isfinite(value):
             raise ValueError(f'Invalid number: {value}')
         # Use locale-independent conversion to make sure that the decimal separator is always dot.
@@ -25,9 +25,8 @@ class XmlUtils:
     # @classmethod
     # def trimInsignificantZeros(cls, floatingPointNumber = '.'):
     #     return trimInsignificantZeros(floatingPointNumber, '.', 'E')
-    
     @classmethod
-    def trimInsignificantZeros(cls, floatingPointNumber: str, decimalSeparator: str = '.', exponentialSeparator: str = 'E'):
+    def trimInsignificantZeros(cls, floatingPointNumber: str, decimalSeparator: str = '.', exponentialSeparator: str = 'E') -> str:
         pos = floatingPointNumber.rfind(decimalSeparator)
         if pos < 0:
             return floatingPointNumber

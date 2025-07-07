@@ -6,7 +6,7 @@ class VdElement(metaclass=ABCMeta):
         self.mName = ''
         self.isClipPath = False
 
-    def getName(self):
+    def getName(self) -> str:
         return self.nName
 
     def setClipPath(self, isClip: bool):

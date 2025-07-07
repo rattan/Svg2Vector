@@ -5,7 +5,6 @@ from VdPath import VdPath
 # Utility functions for parsing path information. The implementation details should be the same as
 # the PathParser in Android framework.
 # <p>See https://www.w3.org/TR/SVG/paths.html#PathDataBNF for the pathData syntax.
-
 class PathParser:
     EMPTY_FLOAT_ARRAY = []
     
@@ -65,7 +64,7 @@ class PathParser:
     # @param parseMode indicated whether the path belongs to an either SVG or a vector drawable
     # @return array of floats
     @classmethod
-    def getFloats(cls, s: str, parseMode: ParseMode):
+    def getFloats(cls, s: str, parseMode: ParseMode) -> list[float]:
         command = s[0]
         if command == 'z' or command == 'Z':
             return cls.EMPTY_FLOAT_ARRAY
@@ -106,11 +105,11 @@ class PathParser:
             raise Exception(f'Error in parsing "{s}" {e}')
 
     @classmethod
-    def addNode(cls, lst: list, cmd, val: list):
+    def addNode(cls, lst: list[VdPath.Node], cmd, val: list[float]):
         lst.append(VdPath.Node(cmd, val))
 
     @classmethod
-    def nextStart(cls, s: str, end: int):
+    def nextStart(cls, s: str, end: int) -> int:
         while end < len(s):
             c = s[end]
             # Note that 'e' or 'E' are not valid path commands, but could be used for floating
@@ -122,7 +121,7 @@ class PathParser:
         return end
 
     @classmethod
-    def parsePath(cls, value: str, mode: ParseMode):
+    def parsePath(cls, value: str, mode: ParseMode) -> list[VdPath.Node]:
         value = value.strip()
         nList = []
         start = 0

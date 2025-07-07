@@ -13,15 +13,15 @@ import math
 # @since 1.2
 class Point2D(metaclass = ABCMeta):
     @abstractmethod
-    def getX(self):
+    def getX(self) -> float:
         pass
 
     @abstractmethod
-    def getY(self):
+    def getY(self) -> float:
         pass
 
     @abstractmethod
-    def setLocation(self, x, y):
+    def setLocation(self, x: float, y: float):
         pass
 
     # Sets the location of this {@code Point2D} to the same
@@ -29,7 +29,7 @@ class Point2D(metaclass = ABCMeta):
     # @param p the specified {@code Point2D} to which to set
     # this {@code Point2D}
     # @since 1.2
-    def setLocation(p):
+    def setLocation(p: Self):
         self.setLocation(p.getX(), p.getY())
 
     # Returns the square of the distance between two points.
@@ -41,7 +41,7 @@ class Point2D(metaclass = ABCMeta):
     # sets of specified coordinates.
     # @since 1.2
     @classmethod
-    def distanceSq(cls, x1, y1, x2, y2):
+    def distanceSq(cls, x1, y1, x2, y2) -> float:
         x1 -= x2
         y1 -= y2
         return x1 * x1 + y1 * y1
@@ -55,7 +55,7 @@ class Point2D(metaclass = ABCMeta):
     # coordinates.
     # @since 1.2
     @classmethod
-    def distance(cls, x1, y1, x2, y2):
+    def distance(cls, x1: float, y1: float, x2: float, y2: float) -> float:
         x1 -= x2
         y1 -= y2
         return math.sqrt(x1 * x1 + y1 * y1)
@@ -69,7 +69,7 @@ class Point2D(metaclass = ABCMeta):
     # @return the square of the distance between this
     # {@code Point2D} and the specified point.
     # @since 1.2
-    def distanceSq(self, px, py):
+    def distanceSq(self, px: float, py: float) -> float:
         px -= self.getX()
         py -= self.getY()
         return px * px + py * py
@@ -81,7 +81,7 @@ class Point2D(metaclass = ABCMeta):
     # @return the square of the distance between this
     # {@code Point2D} to a specified {@code Point2D}.
     # @since 1.2
-    def distanceSq(self, pt):
+    def distanceSq(self, pt: Self) -> float:
         px = pt.getX() - self.getX()
         py = pt.getY() - self.getY()
         return px * px + py * py
@@ -95,7 +95,7 @@ class Point2D(metaclass = ABCMeta):
     # @return the distance between this {@code Point2D}
     # and a specified point.
     # @since 1.2
-    def distance(self, px, py):
+    def distance(self, px: float, py: float) -> float:
         px -= getX()
         py -= getY()
         return math.sqrt(px * px + py * py)
@@ -107,54 +107,10 @@ class Point2D(metaclass = ABCMeta):
     # @return the distance between this {@code Point2D} and
     # the specified {@code Point2D}.
     # @since 1.2
-    def distance(self, pt):
+    def distance(self, pt: Self) -> float:
         px = pt.getX() - self.getX()
         py = pt.getY() - self.getY()
         return math.sqrt(px * px + py * py)
-
-    # Creates a new object of the same class and with the
-    # same contents as this object.
-    # @return     a clone of this instance.
-    # @throws  OutOfMemoryError            if there is not enough memory.
-    # @see        java.lang.Cloneable
-    # @since      1.2
-    # public Object clone() {
-    #     try {
-    #         return super.clone();
-    #     } catch (CloneNotSupportedException e) {
-    #         // this shouldn't happen, since we are Cloneable
-    #         throw new InternalError(e);
-    #     }
-    # }
-
-    # /**
-    # # Returns the hashcode for this {@code Point2D}.
-    # # @return      a hash code for this {@code Point2D}.
-    # #/
-    # public int hashCode() {
-    #     long bits = java.lang.Double.doubleToLongBits(getX());
-    #     bits ^= java.lang.Double.doubleToLongBits(getY())# 31;
-    #     return (((int) bits) ^ ((int) (bits >> 32)));
-    # }
-
-    # /**
-    # # Determines whether or not two points are equal. Two instances of
-    # # {@code Point2D} are equal if the values of their
-    # # {@code x} and {@code y} member fields, representing
-    # # their position in the coordinate space, are the same.
-    # # @param obj an object to be compared with this {@code Point2D}
-    # # @return {@code true} if the object to be compared is
-    # #         an instance of {@code Point2D} and has
-    # #         the same values; {@code false} otherwise.
-    # # @since 1.2
-    # #/
-    # public boolean equals(Object obj) {
-    #     if (obj instanceof Point2D) {
-    #         Point2D p2d = (Point2D) obj;
-    #         return (getX() == p2d.getX()) && (getY() == p2d.getY());
-    #     }
-    #     return super.equals(obj);
-    # }
 
     # The {@code Float} class defines a point specified in float
     # precision.
@@ -168,7 +124,7 @@ class Point2DF(Point2D):
     # @param y the Y coordinate of the newly
     #          constructed {@code Point2D}
     # @since 1.2
-    def __init__(self, x = 0.0, y = 0.0):
+    def __init__(self, x: float = 0.0, y: float = 0.0):
         # The X coordinate of this {@code Point2D}.
         # @since 1.2
         # @serial
@@ -181,11 +137,11 @@ class Point2DF(Point2D):
 
     # @since 1.2
     #/
-    def getX(self):
+    def getX(self) -> float:
         return self.x
 
     # @since 1.2
-    def getY(self):
+    def getY(self) -> float:
         return self.y
 
     # Sets the location of this {@code Point2D} to the
@@ -193,15 +149,15 @@ class Point2DF(Point2D):
     # @param x the new X coordinate of this {@code Point2D}
     # @param y the new Y coordinate of this {@code Point2D}
     # @since 1.2
-    def setLocation(self, x, y):
+    def setLocation(self, x: float, y: float):
         self.x = x
-        self.y = Y
+        self.y = y
 
     # Returns a {@code String} that represents the value
     # of this {@code Point2D}.
     # @return a string representation of this {@code Point2D}.
     # @since 1.2
-    def toString(self):
+    def toString(self) -> str:
         return f'Point2D.Float[{x}, {y}]'
 
     # @Serial

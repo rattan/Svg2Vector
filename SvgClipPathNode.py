@@ -19,7 +19,7 @@ class SvgClipPathNode(SvgGroupNode):
         super().__init__(svgTree, element, name)
         self.mAffectedNodes = []
 
-    def deepCopy(self):
+    def deepCopy(self) -> Self:
         newInstance = SvgClipPathNode(self.getTree(), self.mDocumentElement, self.mName)
         newInstance.copyFrom(self)
         return newInstance
@@ -64,7 +64,7 @@ class SvgClipPathNode(SvgGroupNode):
             # reproduced by a clip-path.
             self.logError('Semitransparent mask cannot be represented by a vector drawable')
 
-    def isWhiteFill(self):
+    def isWhiteFill(self) -> bool:
         fillColor = self.mVdAttributesMap.get('fill')
         if fillColor is None:
             return False

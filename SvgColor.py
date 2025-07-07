@@ -164,7 +164,7 @@ class SvgColor:
     # @throws IllegalArgumentException if the supplied SVG color value has invalid or unsupported
     #     format
     @classmethod
-    def colorSvg2Vd(cls, svgColorValue: str):
+    def colorSvg2Vd(cls, svgColorValue: str) -> str:
         color = svgColorValue.strip()
         if color.startswith("#"):
             # Convert RGBA to ARGB.
@@ -200,7 +200,7 @@ class SvgColor:
         return cls.colorMap.get(color.lower())
 
     @classmethod
-    def getColorComponent(cls, colorComponent: str, svgColorValue: str):
+    def getColorComponent(cls, colorComponent: str, svgColorValue: str) -> int:
         try:
             if colorComponent.endswith('%'):
                 value = float(colorComponent[0: -1])
@@ -210,5 +210,5 @@ class SvgColor:
             raise Exception(svgColorValue)
 
     @classmethod
-    def clampColor(cls, val: int):
+    def clampColor(cls, val: int) -> int:
         return math.max(0, math.min(255, val))

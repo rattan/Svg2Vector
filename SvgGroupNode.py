@@ -3,6 +3,7 @@ from AffineTransform import AffineTransform
 
 from SvgNode import SvgNode
 from xml.dom import minidom
+from typing import Self
 
 # Represent a SVG file's group element
 class SvgGroupNode(SvgNode):
@@ -11,18 +12,18 @@ class SvgGroupNode(SvgNode):
         self.mChildren = []
         self.mUseReferenceNode = None
 
-    def deepCopy(self):
-        nreInstance = SvgGroupNode(self.getTree(), self.mDocumentElement, self.getName())
+    def deepCopy(self) -> Self:
+        newInstance = SvgGroupNode(self.getTree(), self.mDocumentElement, self.getName())
         newInstance.copyFrom(self)
         return newInstance
 
-    def copyFrom(self, frm):
+    def copyFrom(self, frm) -> Self:
         super().copyFrom(frm)
         for child in frm.mChildren:
             self.addChild(child.deepCopy())
 
     # Revolve the 'href' reference to a difference group element in this 'use' group node.
-    def resolveHref(self, svgTree: 'SvgTree'):
+    def resolveHref(self, svgTree: 'SvgTree') -> bool:
         _id = self.getHrefId()
         self.mUseReferenceNode = svgTree.getSvgNodeFromId(_id) if _id else None
         if self.mUseReferenceNode is None:
@@ -76,7 +77,7 @@ class SvgGroupNode(SvgNode):
 
     # Finds the parent node of the input node.
     # @return the parent node, or null if node is not in the tree.
-    def findParent(self, node: SvgNode):
+    def findParent(self, node: SvgNode) -> Self:
         for n in self.mChildren:
             if n == node:
                 return self
@@ -86,7 +87,7 @@ class SvgGroupNode(SvgNode):
                     return parent
         return None
 
-    def isGroupNode(self):
+    def isGroupNode(self) -> bool:
         return True
 
     def transformIfNeeded(self, rootTransform: AffineTransform):
@@ -107,7 +108,7 @@ class SvgGroupNode(SvgNode):
         for node in self.mChildren:
             node.writeXml(streamWriter, indent)
     
-    def accpet(self, visitor: SvgNode.Visitor):
+    def accpet(self, visitor: SvgNode.Visitor) -> SvgNode.VisitResult:
         result = visitor.visit(self)
         if result == Visiresult.CONTINUE:
             for node in self.mChildren:

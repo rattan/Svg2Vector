@@ -7,24 +7,34 @@ import copy
 from abc import *
 from typing import Self
 from enum import Enum
+from xml.dom import minidom
 
 # Parent class for a SVG file's node, can be either group or leave element.
 class SvgNode(metaclass=ABCMeta):
     INDENT_UNIT = '  '
     CONTINUATION_INDENT = INDENT_UNIT + INDENT_UNIT
+    TRANSFORM_TAG = 'transform'
+    MATRIX_ATTRIBUTE = 'matrix'
+    TRANSLATE_ATTRIBUTE = 'translate'
+    ROTATE_ATTRIBUTE = 'rotate'
+    SCALE_ATTRIBUTE = 'scale'
+    SKEWX_ATTRIBUTE = 'skewX'
+    SKEWY_ATTRIBUTE = 'skewY'
+
+    presentationMap = {
+        'stroke': 'android:strokeColor',
+        'stroke-opacity': 'android:strokeAlpha',
+        'stroke-linejoin': 'android:strokeLineJoin',
+        'stroke-linecap': 'android:strokeLineCap',
+        'stroke-width': 'android:strokeWidth',
+        'fill': 'android:fillColor',
+        'fill-opacity': 'android:fillAlpha',
+        'clip': 'android:clip',
+        'opacity': 'android:fillAlpha'
+    }
 
     # While parsing the translate() rotate() ..., update the {@code mLocalTransform}.
-    def __init__(self, svgTree: 'SvgNode', element, name: str):
-        self.INDENT_UNIT = '  '
-        self.CONTINUATION_INDENT = self.INDENT_UNIT + self.INDENT_UNIT
-        self.TRANSFORM_TAG = 'transform'
-        self.MATRIX_ATTRIBUTE = 'matrix'
-        self.TRANSLATE_ATTRIBUTE = 'translate'
-        self.ROTATE_ATTRIBUTE = 'rotate'
-        self.SCALE_ATTRIBUTE = 'scale'
-        self.SKEWX_ATTRIBUTE = 'skewX'
-        self.SKEWY_ATTRIBUTE = 'skewY'
-
+    def __init__(self, svgTree: 'SvgTree', element, name: str):
         self.mName = name
         # Keep a reference to the tree in order to dump the error log.
         self.mSvgTree = svgTree
@@ -32,7 +42,7 @@ class SvgNode(metaclass=ABCMeta):
         self.mDocumentElement = element
 
         # Key is the attributes for vector drawable, and the value is the converted from SVG.
-        self.mVdAttributesMap = {}
+        self.mVdAttributesMap = dict()
         # Stroke is applied before fill as a result of "paint-order:stroke fill" style. */
         self.mStrokeBeforeFill = False
         # If mLocalTransform is identity, it is the same as not having any transformation.
@@ -40,18 +50,6 @@ class SvgNode(metaclass=ABCMeta):
         # During the flatten() operation, we need to merge the transformation from top down.
         # This is the stacked transformation. And this will be used for the path data transform().
         self.mStackedTransform = AffineTransform()
-
-        self.presentationMap = {
-            'stroke': 'android:strokeColor',
-            'stroke-opacity': 'android:strokeAlpha',
-            'stroke-linejoin': 'android:strokeLineJoin',
-            'stroke-linecap': 'android:strokeLineCap',
-            'stroke-width': 'android:strokeWidth',
-            'fill': 'android:fillColor',
-            'fill-opacity': 'android:fillAlpha',
-            'clip': 'android:clip',
-            'opacity': 'android:fillAlpha'
-        }
 
         attrs = element.attributes
         for itemIndex in range(attrs.length):
@@ -115,7 +113,7 @@ class SvgNode(metaclass=ABCMeta):
         return parsedTransform
     
     @classmethod
-    def getNumbers(cls, data: str):
+    def getNumbers(cls, data: str) -> list[float]:
         numbers = re.split(r'\s+', data)
         ln = len(numbers)
         if ln == 0:
@@ -125,13 +123,13 @@ class SvgNode(metaclass=ABCMeta):
             results[i] = float(numbers[i])
         return results
     
-    def getTree(self):
+    def getTree(self) -> 'SvgTree':
         return self.mSvgTree
     
-    def getName(self):
+    def getName(self) -> str:
         return self.mName
     
-    def getDocumentElement(self):
+    def getDocumentElement(self) -> minidom.Element:
         return self.mDocumentElement
     
     # Dumps the current node's debug info.
@@ -146,6 +144,10 @@ class SvgNode(metaclass=ABCMeta):
     def writeXml(self, writer: StreamWriter, indent: str):
         raise Exception()
 
+    class VisitResult(Enum):
+        CONTINUE = 1
+        SKIP_CHILDREN = 2
+        ABOR = 3
 
     class Visitor(metaclass=ABCMeta):
         # Called by the {@link SvgNode#accept(Visitor)} method for every visited node.
@@ -154,12 +156,12 @@ class SvgNode(metaclass=ABCMeta):
         #         {@link VisitResult#SKIP_CHILDREN} to skip children and continue visit with
         #         the next sibling, {@link VisitResult#ABORT} to skip all remaining nodes
         @abstractmethod
-        def visit(self, node: 'SvgNode'):
+        def visit(self, node: 'SvgNode') -> 'VisitResult':
             pass
 
     # Calls the {@linkplain Visitor#visit(SvgNode)} method for this node and its descendants.
     # @param visitor the visitor to accept
-    def accept(self, visitor: Visitor):
+    def accept(self, visitor: Visitor) -> 'VisitResult':
         return visitor.visit(self)
     
     # Returns true the node is a group node.
@@ -195,7 +197,7 @@ class SvgNode(metaclass=ABCMeta):
         if value:
             self.mVdAttributesMap[name] = value
 
-    def indexOf(self, array, element):
+    def indexOf(self, array: list, element) -> int:
         for i in ragne(len(array)):
             if element == array[i]:
                 return i
@@ -221,14 +223,14 @@ class SvgNode(metaclass=ABCMeta):
 
     # Returns a string containing the value of the given attribute. Returns an empty string if
     # the attribute does not exist.
-    def getAttributeValue(self, attribute: str):
+    def getAttributeValue(self, attribute: str) -> str:
         return self.mDocumentElement.getAttribute(attribute)
     
     @abstractmethod
-    def deepCopy(self):
+    def deepCopy(self) -> Self:
         pass
     
-    def copyFrom(self, frm):
+    def copyFrom(self, frm: Self):
         self.fillEmptyAttributes(frm.mVdAttributesMap)
         self.mLocalTransform = copy.deepcopy(frm.mLocalTransform)
     
@@ -239,7 +241,7 @@ class SvgNode(metaclass=ABCMeta):
      # @param errorFallbackColor the value returned if the supplied SVG color value has invalid or
      #     unsupported format
      # @return the converted value, or None if the given value cannot be interpreted as color
-    def colorSvg2Vd(self, svgColor: str, errorFallbackColor: str):
+    def colorSvg2Vd(self, svgColor: str, errorFallbackColor: str) -> str:
         try:
             return SvgColor.colorSvg2Vd(svgColor)
         except Exception as e:
@@ -248,7 +250,7 @@ class SvgNode(metaclass=ABCMeta):
 
     # Returns the id referenced by 'href' or 'xlink.href' attribute, or an empty string if neither
     # of the two attributes is present or doesn't contain a valid reference.
-    def getHrefId(self):
+    def getHrefId(self) -> str:
         value = self.mDocumentElement.getAttribute('href')
         if not value:
             value = self.mDocumentElement.getAttribute('xlink:href')
@@ -259,11 +261,6 @@ class SvgNode(metaclass=ABCMeta):
     
     def logWarning(self, s: str):
         self.mSvgTree.logWarning(s, self.mDocumentElement)
-    
-    class VisitResult(Enum):
-        CONTINUE = 1
-        SKIP_CHILDREN = 2
-        ABOR = 3
     
     class ClipRule(Enum):
         NON_ZERO = 1
