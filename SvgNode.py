@@ -2,6 +2,8 @@ from StreamWriter import StreamWriter
 from AffineTransform import AffineTransform
 from SvgColor import SvgColor
 
+import copy
+
 from abc import *
 from typing import Self
 from enum import Enum
@@ -42,8 +44,8 @@ class SvgNode(metaclass=ABCMeta):
         self.presentationMap = {
             'stroke': 'android:strokeColor',
             'stroke-opacity': 'android:strokeAlpha',
-            'stroke-linejoin': 'android:strokeLinejoin',
-            'stroke-linecap': 'android:strokeLinecap',
+            'stroke-linejoin': 'android:strokeLineJoin',
+            'stroke-linecap': 'android:strokeLineCap',
             'stroke-width': 'android:strokeWidth',
             'fill': 'android:fillColor',
             'fill-opacity': 'android:fillAlpha',
@@ -228,7 +230,7 @@ class SvgNode(metaclass=ABCMeta):
     
     def copyFrom(self, frm):
         self.fillEmptyAttributes(frm.mVdAttributesMap)
-        self.mLocalTransform = frm.mLocalTransform.clone()
+        self.mLocalTransform = copy.deepcopy(frm.mLocalTransform)
     
      # Converts an SVG color value to "#RRGGBB" or "#RGB" format used by vector drawables. The input
      # color value can be "none" and RGB value, e.g. "rgb(255, 0, 0)", or a color name defined in

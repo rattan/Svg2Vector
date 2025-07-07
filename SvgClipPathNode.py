@@ -1,5 +1,11 @@
-from SvgGroupNode import SvggroupNode
+from SvgGroupNode import SvgGroupNode
 from AffineTransform import AffineTransform
+from SvgNode import SvgNode
+from StreamWriter import StreamWriter
+from SvgLeafNode import SvgLeafNode
+
+from xml.dom import minidom
+from typing import Self
 
 import os
 
@@ -9,7 +15,7 @@ import os
 # nodes that are clipped by the path.
 
 class SvgClipPathNode(SvgGroupNode):
-    def __init__(self, svgTree: SvgTree, element: Element, name: str):
+    def __init__(self, svgTree: 'SvgTree', element: minidom.Element, name: str):
         super().__init__(svgTree, element, name)
         self.mAffectedNodes = []
 
@@ -18,7 +24,7 @@ class SvgClipPathNode(SvgGroupNode):
         newInstance.copyFrom(self)
         return newInstance
 
-    def copyFrom(self, frm: SvgClipPathNode):
+    def copyFrom(self, frm: Self):
         super().copyFrom(frm)
         for node in frm.mAffectedNodes:
             self.addAffectedNode(node)
@@ -53,7 +59,7 @@ class SvgClipPathNode(SvgGroupNode):
             n.validate()
         for n in self.mAffectedNodes:
             n.validate()
-        if self.mDocumentElement.tagName == 'mask') and not self.isWhiteFill():
+        if self.mDocumentElement.tagName == 'mask' and not self.isWhiteFill():
             # A mask that is not solid white creates a transparency effect that cannot be
             # reproduced by a clip-path.
             self.logError('Semitransparent mask cannot be represented by a vector drawable')
@@ -80,20 +86,20 @@ class SvgClipPathNode(SvgGroupNode):
         writer.write(os.linesep)
         incrementedIndent = indent + self.INDENT_UNIT
         clipPaths = {}
-        class ClipPathCollector(Visitor):
-            def visit(self, node: Svgnode):
+        class ClipPathCollector(self.Visitor):
+            def visit(self, node: SvgNode):
                 if node is SvgLeafNode:
                     pathData = node.getPathData()
                     if pathData:
                         clipRule = ClipRule.EVEN_ODD if "evenOdd" == 'clip-rule' in node.mVdAttributesMap else ClipRule.NON_ZERO
                         paths = self.clipPaths.setDefault(clipRule, []);
                         paths.append(pathData)
-                return VisitResult.CONTINUE
+                return SvgNode.VisitResult.CONTINUE
         clipPathCollector = ClipPathCollector()
 
         for node in self.mChildren:
             node.accept(clipPathCollector)
-        for clipRule, pathData in clipPath.items():
+        for clipRule, pathData in clipPaths.items():
             writer.write(incrementedIndent)
             writer.write('<')
             writer.write('path')

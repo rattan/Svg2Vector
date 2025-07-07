@@ -111,9 +111,9 @@ class SvgGroupNode(SvgNode):
         result = visitor.visit(self)
         if result == Visiresult.CONTINUE:
             for node in self.mChildren:
-                if node.accpet(visitor) == VisitResult.ABORT:
-                    return VisitResult.ABORT
-        return VisitResult.CONTINUE if result == VisitResult.SKIP_CHILDREN else result
+                if node.accpet(visitor) == self.VisitResult.ABORT:
+                    return self.VisitResult.ABORT
+        return self.VisitResult.CONTINUE if result == self.VisitResult.SKIP_CHILDREN else result
 
     def fillPresentationAttributes(self, name: str, value: str):
         super().fillPresentationAttributes(name, value)

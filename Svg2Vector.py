@@ -23,6 +23,7 @@ from SvgGroupNode import SvgGroupNode
 from SvgLeafNode import SvgLeafNode
 from PathBuilder import PathBuilder
 from StreamWriter import StreamWriter
+from SvgClipPathNode import SvgClipPathNode
 
 # Converts SVG to VectorDrawable's XML
 class Svg2Vector:
@@ -357,7 +358,7 @@ class Svg2Vector:
             elif self.SVG_GROUP == tagName:
                 childGroup = SvgGroupNode(svgTree, childNode, f'child{idx}')
                 currentGroup.addChild(childGroup)
-                self.processIdName(svgTree, child)
+                self.processIdName(svgTree, childGroup)
                 self.extractGroupNode(svgTree, childGroup, currentGroup)
                 self.traverseSvgAndExtract(svgTree, childGroup, childNode)
             elif self.SVG_USE == tagName:
@@ -474,7 +475,7 @@ class Svg2Vector:
     # Checks to see if the childGroup reference an clipPath or style elements. Saves the
     # reference in the svgTree to add the information to an SvgNode later.
     def extractGroupNode(self, svgTree, childGroup, currentGroup):
-        a = childGroup.docuemntElement.attributes
+        a = childGroup.getDocumentElement().attributes
         for j in range(a.length):
             n = a.item(j)
             name = n.nodeName
@@ -534,10 +535,10 @@ class Svg2Vector:
         clipName = self.getClipPathName(value)
         if not clipName:
             return
-        clipNode = self.getClipNodeFromId(value)
+        clipNode = svg.getSvgNodeFromId(clipName)
         if not clipNode:
             return
-        clipCopy = SvgClipPathNode(clipNode).deepCopy()
+        clipCopy = clipNode.deepCopy()
 
         currentGroup.replaceChild(child, clipCopy)
 
@@ -548,7 +549,7 @@ class Svg2Vector:
     # name, which is "clip-path" here.
     # @return the name of the clip path or null if the given string does not contain a proper clip
     #     path name.
-    def getClipPathname(self, s):
+    def getClipPathName(self, s):
         if not s:
             return None
         startPos = s.find('#')
@@ -764,15 +765,15 @@ class Svg2Vector:
                     elif 'x' == name:
                         x = svg.parseXValue(value)
                     elif 'y' == name:
-                        y = parseYValue(value)
+                        y = svg.parseYValue(value)
                     elif 'rx' == name:
                         rx = svg.parseXValue(value)
                     elif 'ry' == name:
-                        ry = parseYValue(value)
+                        ry = svg.parseYValue(value)
                     elif 'width' == name:
-                        width = parseXValue(value)
+                        width = svg.parseXValue(value)
                     elif 'height' == name:
-                        height = parseYValue(value)
+                        height = svg.parseYValue(value)
                     elif 'class' == name:
                         svgTree.addAffectedNodeToStyleClass(f'rect.{value}', child)
                         svgTree.addAffectedNodeToStyleClass(f'.{value}', child)

@@ -146,10 +146,10 @@ class SvgTree:
         return self.mRoot
 
     def logError(self, s: str, node):
-        self.logErrorLine(s, node, SvgLogLevel.ERROR)
+        self.logErrorLine(s, node, self.SvgLogLevel.ERROR)
 
     def logWarning(self, s: str, node):
-        self.logErrorLine(s, node, SvgLogLevel.WARNING)
+        self.logErrorLine(s, node, self.SvgLogLevel.WARNING)
 
     def logErrorLine(self, s: str, node, level: SvgLogLevel):
         line = self.getStartLine(node) if node else 0
@@ -232,8 +232,6 @@ class SvgTree:
         if heightType == self.SizeType.PERCENTAGE and self.h > 0:
             self.h = self.viewBox[3] * h / 100
 
-        print(self.w)
-
     # Parses an X coordinate of a width value that can be an absolute number or percentage of
     # the viewport size.
     # @param value the value to parse
@@ -293,7 +291,7 @@ class SvgTree:
     # Adds child to set of SvgNodes that reference the style class with id className.
     def addAffectedNodeToStyleClass(self, className: str, child: SvgNode):
         if className in self.mStyleAffectedNodes:
-            self.mStyleAffectedNodes[className].append(child)
+            self.mStyleAffectedNodes[className].add(child)
         else:
             styleNodesSet = set()
             styleNodesSet.add(child)
