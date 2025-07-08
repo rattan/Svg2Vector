@@ -261,3 +261,10 @@ class VdPath(VdElement):
             totalTransform.deltaTransform(doubleArray, 0, doubleArray, 0, paramsLen / 2)
             for i in range(paramsLen):
                 coordinates[i + offset] = doubleArray[i]
+
+    @classmethod
+    def applyAlpha(cls, color: int, alpha: float) -> int:
+        alphaBytes = (color >> 24) & 0xff
+        color &= 0x00FFFFFF;
+        color |= int(alphaBytes * alpha) << 24
+        return color

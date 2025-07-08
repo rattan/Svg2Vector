@@ -109,7 +109,6 @@ class SvgClipPathNode(SvgGroupNode):
             writer.write(self.INDENT_UNIT)
             writer.write('android:pathData="')
             for i, path in enumerate(pathData):
-                print(path)
                 if 0 < i and not path.startsWith('M'):
                     # Reset the current position to the origin of the coordinate system.
                     writer.write('M 0,0')

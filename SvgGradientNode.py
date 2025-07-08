@@ -5,8 +5,10 @@ from StreamWriter import StreamWriter
 from SvgNode import SvgNode
 from AffineTransform import AffineTransform
 from XmlUtils import XmlUtils
-# from Path2DF import Path2DF
-# from VdNodeRender import VdNodeRender
+from Path2D import Path2DF
+from VdNodeRender import VdNodeRender
+from PathParser import PathParser
+from VdUtil import VdUtil
 
 from xml.dom import minidom
 from enum import Enum
@@ -118,25 +120,24 @@ class SvgGradientNode(SvgNode):
     #Parses the gradient coordinate value given as a percentage or a length. Returns a double.
     def getGradientCoordinate(self, x: str, defaultValue: float) -> GradientCoordResult:
         if x not in self.mVdAttributesMap:
-            return GradientCoordResult(defaultValue, False)
+            return self.GradientCoordResult(defaultValue, False)
         
         val = defaultValue
         vdValue = self.mVdAttributesMap[x].strip()
         if x == 'r' and vdValue.startswith('-'):
-            return GradientCoordResult(defaultValue, False)
+            return self.GradientCoordResult(defaultValue, False)
         isPercentage = False
         try:
             if vdValue.endswith('%'):
-                val = float(vdValue.substring[0: -1]) / 100
+                val = float(vdValue[0: -1]) / 100
                 isPercentage = True
             else:
                 val = float(vdValue)
-            
+
         except Exception as e:
             # print('Unsupported coordinate value')
             pass
-
-        return GradientCoordResult(val, isPercentage)
+        return self.GradientCoordResult(val, isPercentage)
 
     def writeXml(self, writer: StreamWriter, indent: str):
         if not self.mGradientStops:
@@ -162,7 +163,7 @@ class SvgGradientNode(SvgNode):
             return  # The gradient is not visible because it doesn't occupy any area.
         
         writer.write(indent)
-        if mGradientUsage == self.GradientUsage.FILL:
+        if self.mGradientUsage == self.GradientUsage.FILL:
             writer.write('<aapt:attr name="android:fillColor">')
         else:
             writer.write('<aapt:attr name="android:strokeColor">')
@@ -202,8 +203,7 @@ class SvgGradientNode(SvgNode):
         transformedBounds = []
         gradientType = 'linear'
         if 'gradientType' in self.mVdAttributesMap:
-            gradientType = mVdAttributesMap['gradientType']
-        
+            gradientType = self.mVdAttributesMap['gradientType']
         if gradientType == 'linear':
             gradientBounds = [0.0] * 4
             transformedBounds = [0.0] * 4
@@ -218,7 +218,7 @@ class SvgGradientNode(SvgNode):
                 # The default for x2 is 1.
                 defaultValue = 0.0
                 if index == 2:
-                    defaultValue = 1
+                    defaultValue = 1.0
                 result = self.getGradientCoordinate(s, defaultValue)
                 coordValue = result.getValue()
                 if not isUserSpaceOnUse or result.isPercentage():
@@ -270,11 +270,11 @@ class SvgGradientNode(SvgNode):
         
         for svgAttribute, gradientAttr in self.gradientMap.items():
             svgValue = self.mVdAttributesMap.get(svgAttribute)
-            if not svgValue:
+            if not svgValue or not gradientAttr:
                 continue
             svgValue = svgValue.strip()
             vdValue = self.colorSvg2Vd(svgValue, '#000000')
-            if vdValue is None:
+            if not vdValue:
                 coordinateIndex = self.vectorCoordinateMap.get(svgAttribute)
                 if coordinateIndex:
                     x = transformedBounds[coordinateIndex]
@@ -295,7 +295,6 @@ class SvgGradientNode(SvgNode):
                     vdValue = self.mSvgTree.formatCoordinate(coordinate)
                 else:
                     vdValue = svgValue
-                
             
             writer.write(os.linesep)
             writer.write(indent)
@@ -327,7 +326,7 @@ class SvgGradientNode(SvgNode):
                 # print('Unsupported opacity value')
                 opacity = 1.0
             
-            color1 = VdPath.applyAlpha(self.parseColorValue(color), opacity)
+            color1 = VdPath.applyAlpha(VdUtil.parseColorValue(color), opacity)
             color = '#%08X' % color1
             writer.write(indent)
             writer.write('<item android:offset="')

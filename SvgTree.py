@@ -152,8 +152,10 @@ class SvgTree:
         self.logErrorLine(s, node, self.SvgLogLevel.WARNING)
 
     def logErrorLine(self, s: str, node: minidom.Node, level: SvgLogLevel):
-        line = self.getStartLine(node) if node else 0
-        self.mLogMessage(LogMessage(level, line, s))
+        # temporary print log before implments logging system.
+        print(s)
+        # line = self.getStartLine(node) if node else 0
+        # self.mLogMessage(LogMessage(level, line, s))
 
     # Returns the error message that combines all logged errors and warnings. If there were no
     # errors, returns an empty string.

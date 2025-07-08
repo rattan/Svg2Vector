@@ -3,6 +3,8 @@ from Point2D import Point2DF
 from typing import Self
 import sys
 
+import math
+
 class AffineTransform:
     TYPE_UNKNOWN = -1
     TYPE_IDENTITY = 0
@@ -51,22 +53,22 @@ class AffineTransform:
                     self.state = self.APPLY_SCALE
                     self.type = self.TYPE_UNKNOWN
                 else:
-                    state = self.APPLY_SCALE | self.APPLY_TRANSLATE
+                    self.state = self.APPLY_SCALE | self.APPLY_TRANSLATE
                     self.type = self.TYPE_UNKNOWN
         else:
             if self.m00 == 0.0 and self.m11 == 0.0:
                 if self.m02 == 0.0 and self.m12 == 0.0:
-                    state = APPLY_SHEAR
+                    self.state = self.APPLY_SHEAR
                     self.type = self.TYPE_UNKNOWN
                 else:
-                    state = self.APPLY_SHEAR | self.APPLY_TRANSLATE
+                    self.state = self.APPLY_SHEAR | self.APPLY_TRANSLATE
                     self.type = self.TYPE_UNKNOWN
             else:
                 if self.m02 == 0.0 and self.m12 == 0.0:
-                    state = self.APPLY_SHEAR | self.APPLY_SCALE
+                    self.state = self.APPLY_SHEAR | self.APPLY_SCALE
                     self.type = self.TYPE_UNKNOWN
                 else:
-                    state = self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE
+                    self.state = self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE
                     self.type = self.TYPE_UNKNOWN
 
     # Sets this transform to a copy of the transform in the specified
@@ -244,7 +246,7 @@ class AffineTransform:
             ptDst.setLocation(x * self.m00 + y * self.m01 + self.m02, x * self.m10 + y * self.m11 + self.m12)
         elif self.state  == self.APPLY_SHEAR | self.APPLY_SCALE:
             ptDst.setLocation(x * self.m00 + y * self.m01, x * self.m10 + y * self.m11)
-        elif self.state == APPLY_SHEAR:
+        elif self.state == self.APPLY_SHEAR:
             ptDst.setLocation(y * self.m01, x * self.m10)
         elif self.state == self.APPLY_SCALE | self.APPLY_TRANSLATE:
             ptDst.setLocation(x * self.m00 + self.m02, y * self.m11 + self.m12)
@@ -285,7 +287,7 @@ class AffineTransform:
         M10 = 0.0
         M11 = 0.0
         M12 = 0.0
-        if dstPts is not srcPts and srcOff < dstOff and desOff < srcOff + numPts * 2:
+        if dstPts == srcPts and srcOff < dstOff and desOff < srcOff + numPts * 2:
             # If the arrays overlap partially with the destination higher
             # than the source and we transform the coordinates normally
             # we would overwrite some of the later source coordinates
@@ -424,10 +426,14 @@ class AffineTransform:
         det = 0.0
 
         if self.state == self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE:
-            M00 = self.m00; M01 = self.m01; M02 = self.m02
-            M10 = self.m10; M11 = self.m11; M12 = self.m12
+            M00 = self.m00
+            M01 = self.m01
+            M02 = self.m02
+            M10 = self.m10
+            M11 = self.m11
+            M12 = self.m12
             det = M00 * M11 - M01 * M10
-            if math.abs(det) <= sys.float_info.min:
+            if abs(det) <= sys.float_info.min:
                 raise ValueError(f'Determinant is {det}')
 
             self.m00 =  M11 / det
@@ -438,10 +444,12 @@ class AffineTransform:
             self.m12 = (M10 * M02 - M00 * M12) / det
             
         elif self.state  == self.APPLY_SHEAR | self.APPLY_SCALE:
-            M00 = self.m00; M01 = self.m01
-            M10 = self.m10; M11 = self.m11
+            M00 = self.m00
+            M01 = self.m01
+            M10 = self.m10
+            M11 = self.m11
             det = M00 * M11 - M01 * M10
-            if math.abs(det) <= Double.MIN_VALUE:
+            if abs(det) <= Double.MIN_VALUE:
                 raise ValueError(f'Determinant is {det}')
             self.m00 =  M11 / det
             self.m10 = -M10 / det
@@ -450,8 +458,10 @@ class AffineTransform:
             # self.m02 = 0.0
             # self.m12 = 0.0
         elif self.state == self.APPLY_SHEAR | self.APPLY_TRANSLATE:
-            M01 = self.m01; M02 = self.m02
-            M10 = self.m10; M12 = self.m12
+            M01 = self.m01
+            M02 = self.m02
+            M10 = self.m10
+            M12 = self.m12
             if M01 == 0.0 or M10 == 0.0:
                 raise ValueError(f'Determinant is 0')
             # self.m00 = 0.0
@@ -460,7 +470,7 @@ class AffineTransform:
             # self.m11 = 0.0
             self.m02 = -M12 / M10
             self.m12 = -M02 / M01
-        elif self.state == APPLY_SHEAR:
+        elif self.state == self.APPLY_SHEAR:
             M01 = self.m01
             M10 = self.m10
             if M01 == 0.0 or M10 == 0.0:
@@ -472,8 +482,10 @@ class AffineTransform:
             # self.m02 = 0.0
             # self.m12 = 0.0
         elif self.state == self.APPLY_SCALE | self.APPLY_TRANSLATE:
-            M00 = self.m00; M02 = self.m02
-            M11 = self.m11; M12 = self.m12
+            M00 = self.m00
+            M02 = self.m02
+            M11 = self.m11
+            M12 = self.m12
             if M00 == 0.0 or M11 == 0.0:
                 raise ValueError(f'Determinant is 0')
             self.m00 = 1.0 / M00
@@ -664,7 +676,7 @@ class AffineTransform:
             self.m01 = 0.0
             self.m11 = self.m10 * Tx.m01
             self.m10 = 0.0
-            self.state = mystate ^ self.APPLY_SHEAR | self.APPLY_SCALE
+            self.state = mystate ^ (self.APPLY_SHEAR | self.APPLY_SCALE)
             self.type = self.TYPE_UNKNOWN
             return
         elif combined_state in {
@@ -675,7 +687,7 @@ class AffineTransform:
             self.m00 = 0.0
             self.m10 = self.m11 * Tx.m10
             self.m11 = 0.0
-            self.state = mystate ^ self.APPLY_SHEAR | self.APPLY_SCALE
+            self.state = mystate ^ (self.APPLY_SHEAR | self.APPLY_SCALE)
             self.type = self.TYPE_UNKNOWN
             return
         elif combined_state == self.HI_SHEAR | self.APPLY_TRANSLATE:
@@ -1158,6 +1170,72 @@ class AffineTransform:
             # If state_error raises an exception, this 'return' is unreachable.
             return
 
+    def rotate90(self):
+        M0 = self.m00
+        self.m00 = self.m01
+        self.m01 = -M0
+        M0 = self.m10
+        self.m10 = self.m11
+        self.m11 = -M0
+        state = rot90conversion[self.state]
+        if (state & (self.APPLY_SHEAR | self.APPLY_SCALE)) == self.APPLY_SCALE and self.m00 == 1.0 and self.m11 == 1.0:
+            state -= APPLY_SCALE
+        self.state = state
+        self.type = TYPE_UNKNOWN
+
+    def rotate180(self):
+        self.m00 = -self.m00
+        self.m11 = -self.m11
+        state = self.state
+        if (self.state & self.APPLY_SHEAR) != 0:
+            self.m01 = -self.m01
+            self.m10 = -self.m10
+        else:
+            if self.m00 == 1.0 and self.m11 == 1.0:
+                self.state = state & ~APPLY_SCALE
+            else:
+                self.state = state | APPLY_SCALE
+        self.type = TYPE_UNKNOWN
+    
+    def rotate270(self):
+        M0 = self.m00
+        self.m00 = -self.m01
+        self.m01 = M0
+        M0 = self.m10
+        self.m10 = -self.m11
+        self.m11 = M0
+        state = rot90conversion[self.state]
+        if self.state & (self.APPLY_SHEAR | self.APPLY_SCALE) == self.APPLY_SCALE and self.m00 == 1.0 and self.m11 == 1.0:
+            state -= APPLY_SCALE
+        self.state = state
+        self.type = TYPE_UNKNOWN
+
+    def rotate1(self, theta: float):
+        sin = math.sin(theta)
+        if sin == 1.0:
+            self.rotate90()
+        elif sin == -1.0:
+            self.rotate270()
+        else:
+            cos = math.cos(theta)
+            if cos == -1.0:
+                rotate180()
+            elif cos != 1.0:
+                M0 = self.m00
+                M1 = self.m01
+                self.m00 =  cos * M0 + sin * M1
+                self.m01 = -sin * M0 + cos * M1
+                M0 = self.m10
+                M1 = self.m11
+                self.m10 =  cos * M0 + sin * M1
+                self.m11 = -sin * M0 + cos * M1
+                self.updateState()
+
+    def rotate(self, theta: float, anchorx: float, anchory: float):
+        self.translate(anchorx, anchory)
+        self.rotate1(theta)
+        self.translate(-anchorx, -anchory)
+
     # Concatenates this transform with a scaling transformation.
     # This is equivalent to calling concatenate(S), where S is an
     # {@code AffineTransform} represented by the following matrix:
@@ -1210,7 +1288,7 @@ class AffineTransform:
             self.APPLY_SCALE
         }:
             self.m00 *= sx
-            self.m11 *=xy
+            self.m11 *= sy
             if self.m00 == 1.0 and self.m11 == 1.0:
                 current_state &= self.APPLY_TRANSLATE
                 self.state = current_state

@@ -326,7 +326,7 @@ class Svg2Vector:
             while targetId and _id not in visited:
                 visited.append(_id)
                 _id = targetId
-                targetId = edges[id]
+                targetId = edges[_id]
             
             if targetId:    # Broken links are reported separately. Ignore them here.
                 node = nodesById[_id]
@@ -536,7 +536,7 @@ class Svg2Vector:
     def processIdName(cls, svgTree: SvgTree, node: SvgNode):
         _id = node.getAttributeValue('id')
         if _id:
-            svgTree.addIdToMap(id, node)
+            svgTree.addIdToMap(_id, node)
 
     # Replaces an SvgNode in the SvgTree that references a clipPath element with the
     # SvgClipPathNode that corresponds to the referenced clip-path id. Adds the SvgNode as an

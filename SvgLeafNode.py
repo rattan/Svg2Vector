@@ -117,6 +117,9 @@ class SvgLeafNode(SvgNode):
     def setPathData(self, pathData: str):
         self.mPathData = pathData
 
+    def getPathData(self) -> str:
+        return self.mPathData
+
     def isGroupNode(self) -> bool:
         return False
 
@@ -167,7 +170,7 @@ class SvgLeafNode(SvgNode):
             self.writePathElementWithSuppressedFillOrStroke(writer, 'fill', indent)
             self.writePathElementWithSuppressedFillOrStroke(writer, 'stroke', indent)
         else:
-            self.writePathElement(writer, indent);
+            self.writePathElement(writer, indent)
         
     def writePathElementWithSuppressedFillOrStroke(self, writer: StreamWriter, attribute: str, indent: str):
         savedValue = self.mVdAttributesMap.get(attribute)

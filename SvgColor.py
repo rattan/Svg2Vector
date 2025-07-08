@@ -176,7 +176,7 @@ class SvgColor:
         if 'none' == color:
             return '#00000000'
         if color.startswith('rgb(') and color.endswith(')'):
-            rgb = color.substring[4: -1]
+            rgb = color[4: -1]
             numbers = rgb.split(',')
             if lend(numbers) != 3:
                 raise ValueError(svgColorValue)

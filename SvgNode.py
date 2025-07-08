@@ -3,6 +3,8 @@ from AffineTransform import AffineTransform
 from SvgColor import SvgColor
 
 import copy
+import re
+import math
 
 from abc import *
 from typing import Self
@@ -68,48 +70,48 @@ class SvgNode(metaclass=ABCMeta):
         # We separate the string into multiple parts and look like this:
         # "translate" "30" "rotate" "4.5e1  5e1  50"
         nodeValue = nodeValue.replace(',', ' ')
-        matrices = nodeValue.split("[()]")
-        for i in range(0, len(matrices), 2):
+        matrices = re.split(r'[()]', nodeValue)
+        for i in range(0, len(matrices) - 1, 2):
             parsedTransform = self.parseOneTransform(matrices[i].strip(), matrices[i + 1].strip())
             if parsedTransform:
                 self.mLocalTransform.concatenate(parsedTransform)
 
     @classmethod
     def parseOneTransform(cls, _type: str, data: str):
-        numbers = self.getNumbers(data)
+        numbers = cls.getNumbers(data)
         if not numbers:
             return None
-        
+        print(_type, data)
         numLength = len(numbers)
         parsedTransform = AffineTransform()
-        if self.MATRIX_ATTRIBUTE.casefold() == _type.casefold():
+        if cls.MATRIX_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 6:
                 return None
             parsedTransform.setTransform(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5])
-        elif self.TRANSLATE_ATTRIBUTE.casefold() == _type.casefold():
+        elif cls.TRANSLATE_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1 and numLength != 2:
                 return None
             # Default translateY is 0
             parsedTransform.translate(numbers[0], numbers[1] if numLength == 2 else 0)
-        elif self.SCALE_ATTRIBUTE.casefold() == _type.casefold():
+        elif cls.SCALE_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1 and numLength != 2:
                 return None
             # Default scaleY == scaleX
             parsedTransform.scale(numbers[0], numbers[1 if numLength == 2 else 0])
-        elif self.ROTATE_ATTRIBUTE.casefold() == _type.casefold():
+        elif cls.ROTATE_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1 and numLength != 3:
                 return None
-            parsedTransform.rotate(math.toradians(numbers[0]), numbers[1] if numLength == 3 else 0, numbers[2] if numLength == 3 else 0)
-        elif self.SKEWX_ATTRIBUTE.casefold() == _type.casefold():
+            parsedTransform.rotate(math.radians(numbers[0]), numbers[1] if numLength == 3 else 0, numbers[2] if numLength == 3 else 0)
+        elif cls.SKEWX_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1:
                 return None
             # Note that Swing is pass the shear value directly to the matrix as m01 or m10,
             # while SVG is using tan(a) in the matrix and a is in radians.
-            parsedTransform.shear(math.tan(math.toradians(numbers[0])), 0)
-        elif self.SKEWY_ATTRIBUTE.casefold() == _type.casefold():
+            parsedTransform.shear(math.tan(math.radians(numbers[0])), 0)
+        elif cls.SKEWY_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1:
                 return None
-            parsedTransform.shear(0, math.tan(math.toradians(numbers[0])))
+            parsedTransform.shear(0, math.tan(math.radians(numbers[0])))
         return parsedTransform
     
     @classmethod

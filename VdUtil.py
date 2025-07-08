@@ -28,7 +28,7 @@ class VdUtil:
         color_length = len(color)
         if color_length == 7:
             # #RRGGBB
-            return int(color[1:], 16) | ALPHA_MASK
+            return int(color[1:], 16) | cls.ALPHA_MASK
         elif color_length == 9:
             # #AARRGGBB
             return int(color[1:], 16)
@@ -38,7 +38,7 @@ class VdUtil:
             r = (v >> 8) & 0xF
             g = (v >> 4) & 0xF
             b = v & 0xF
-            return (r * 0x110000) | (g * 0x1100) | (b * 0x11) | ALPHA_MASK
+            return (r * 0x110000) | (g * 0x1100) | (b * 0x11) | cls.ALPHA_MASK
         elif color_length == 5:
             # #ARGB
             v = int(color[1:], 16)
@@ -48,4 +48,4 @@ class VdUtil:
             b = v & 0xF
             return (a * 0x11000000) | (r * 0x110000) | (g * 0x1100) | (b * 0x11)
         else:
-            return ALPHA_MASK
+            return cls.ALPHA_MASK
