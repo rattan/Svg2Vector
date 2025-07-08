@@ -185,7 +185,7 @@ class Svg2Vector:
         #         cls.parseDimension(svgTree, nNode)
 
         if svgTree.viewBox == None:
-            svgTree.logErrorLine('Missing "viewBox" in <svg> element', rootElement)
+            svgTree.logError('Missing "viewBox" in <svg> element', rootElement)
             return svgTree
 
         # if (svgTree.w == 0 or svgTree.h == 0) and 0 < svgTree.viewBox[2] and 0 < svgTree.viewBox[3]:
@@ -383,25 +383,25 @@ class Svg2Vector:
             elif cls.SVG_STYLE == tagName:
                 cls.extractStyleNode(svgTree, childNode)
             elif 'linearGradient' == tagName:
-                gradientNode = SvgGradientNode(svgTree, childElement, f'{tagName}{idx}')
+                gradientNode = SvgGradientNode(svgTree, childNode, f'{tagName}{idx}')
                 cls.processIdName(svgTree, gradientNode)
-                cls.extrctGradientNode(svgTree, gradientNode)
+                cls.extractGradientNode(svgTree, gradientNode)
                 gradientNode.fillPresentationAttributes('gradientType', 'linear')
                 svgTree.setHasGradient(True)
             elif 'radialGradient' == tagName:
                 gradientNode = SvgGradientNode(svgTree, childNode, f'{tagName}{idx}')
                 cls.processIdName(svgTree, gradientNode)
-                cls.extrctGradientNode(svgTree, gradientNode)
+                cls.extractGradientNode(svgTree, gradientNode)
                 gradientNode.fillPresentationAttributes('gradientType', 'radial')
                 svgTree.setHasGradient(True)
             else:
-                _id = childElement.getAttribute('id')
+                _id = childNode.getAttribute('id')
                 if _id:
                     svgTree.addIgnoredId(_id)
                 # For other fancy tags, like <switch>, they can contain children too.
                 # Report the unsupported nodes.
                 if tagName in cls.unsupportedSvgNodes:
-                    svgTree.logErrorLine(f'<{tagName}> is not supported', childNode)
+                    svgTree.logError(f'<{tagName}> is not supported', childNode)
                 # This is a workaround for the cases using defs to define a full icon size clip
                 # path, which is redundent information anyway.
                 cls.traverseSvgAndExtract(svgTree, currentGroup, childNode)
@@ -409,17 +409,17 @@ class Svg2Vector:
     # Reads content from a gradient element's decumentNode and fills in attributes for the given
     # Svg gradient node.
     @classmethod
-    def extractGradientNode(svg, gradientNode: SvgGradientNode):
+    def extractGradientNode(cls, svg: SvgTree, gradientNode: SvgGradientNode):
         element = gradientNode.getDocumentElement()
         attrs = element.attributes
-        if elemetns.getAttribute(cls.SVG_HREF) or elements.getAttribute(cls.SVG_XLINK_HREF):
+        if element.getAttribute(cls.SVG_HREF) or element.getAttribute(cls.SVG_XLINK_HREF):
             svg.addToPendingGradientRefSet(gradientNode)
         
-        for j in range(attrs.length):
+        for i in range(attrs.length):
             n = attrs.item(i)
             name = n.nodeName
             value = n.nodeValue
-            if name in gradientMap:
+            if name in cls.gradientMap:
                 gradientNode.fillPresentationAttributes(name, value)
         gradientChildren = element.childNodes
 
@@ -474,7 +474,7 @@ class Svg2Vector:
     def extractOffset(cls, offset: str, greatestOffset: float) -> float:
         x = 0.0
         if offset.endswith('%'):
-            x = float(offset[-1]) / 100
+            x = float(offset[:-1]) / 100
         else:
             x = float(offset)
         # Gradient offset value must be between 0 and 1 or 0% and 100%.

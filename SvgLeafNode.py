@@ -4,6 +4,7 @@ from StreamWriter import StreamWriter
 from AffineTransform import AffineTransform
 from PathParser import PathParser
 from XmlUtils import XmlUtils
+from SvgGradientNode import SvgGradientNode
 
 from typing import Self
 
@@ -42,8 +43,8 @@ class SvgLeafNode(SvgNode):
             svgValue = svgValue.strip()
             vdValue = self.colorSvg2Vd(svgValue, '#000000')
 
-            if vdValue is None:
-                if name == ['fill', 'stroke']:
+            if not vdValue:
+                if name in ['fill', 'stroke']:
                     gradientNode = self.getGradientNode(svgValue)
                     if gradientNode:
                         gradientNode = gradientNode.deepCopy()
@@ -56,7 +57,7 @@ class SvgLeafNode(SvgNode):
                             self.mStrokeGradientNode = gradientNode
                         continue
                 if svgValue.endswith('px'):
-                    vdValue = svgValue[-2].strip()
+                    vdValue = svgValue[:-2].strip()
                 else:
                     vdValue = svgValue
             writer.write(os.linesep)
@@ -67,11 +68,11 @@ class SvgLeafNode(SvgNode):
             writer.write(vdValue)
             writer.write('"')
 
-    def getGradientNode(self, svgValue: str) -> 'SvgGradientNode':
-        if svgValue.startswith('url(#') and svgVlaue.endswith(')'):
+    def getGradientNode(self, svgValue: str) -> SvgGradientNode:
+        if svgValue.startswith('url(#') and svgValue.endswith(')'):
             _id = svgValue[5: -1]
             node = self.getTree().getSvgNodeFromId(_id)
-            if node is SvgGradientNode:
+            if isinstance(node, SvgGradientNode):
                 return node
         return None
 

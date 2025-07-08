@@ -261,7 +261,7 @@ class SvgTree:
         self.mIdMap[_id] = svgNode
 
     def getSvgNodeFromId(self, _id: str) -> SvgNode:
-        return self.mIdMap.get(id)
+        return self.mIdMap.get(_id)
 
     def addToPendingUseSet(self, useGroup: SvgGroupNode):
         self.mPendingUseGroupSet.add(useGroup)
@@ -276,7 +276,7 @@ class SvgTree:
         return self.mPendingGradientRefSet
 
     def addIgnoredId(self, _id: str):
-        self.mIgnoredIds.append(_id)
+        self.mIgnoredIds.add(_id)
 
     def isIdIgnored(self, _id: str):
         return _id in self.mIgnoredIds

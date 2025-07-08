@@ -3,9 +3,10 @@ from VdPath import VdPath
 from GradientStop import GradientStop
 from StreamWriter import StreamWriter
 from SvgNode import SvgNode
-from SvgLeafNode import SvgLeafNode
 from AffineTransform import AffineTransform
 from XmlUtils import XmlUtils
+# from Path2DF import Path2DF
+# from VdNodeRender import VdNodeRender
 
 from xml.dom import minidom
 from enum import Enum
@@ -60,8 +61,8 @@ class SvgGradientNode(SvgNode):
     # mGradientUsage based on the leaf node's attributes and reference to the gradient being
     # copied.
     def copyFrom(self, frm: Self):
-        super.copyFrom(frm)
-        if not mGradientStops:
+        super().copyFrom(frm)
+        if not self.mGradientStops:
             for g in frm.mGradientStops:
                 self.addGradientStop(g.getColor(), g.getOffset(), g.getOpacity())
 
@@ -71,7 +72,7 @@ class SvgGradientNode(SvgNode):
     def resolveHref(self, svgTree: 'SvgTree') -> bool:
         _id = self.getHrefId()
         referencedNode = svgTree.getSvgNodeFromId(_id) if _id else None 
-        if referencedNode is SvgGradientNode:
+        if isinstance(referencedNode, SvgGradientNode):
             #noinspection SuspiciousMethodCalls
             if (svgTree.getPendingUseSet().contains(referencedNode)):
                 # Cannot process this node, because referencedNode it depends upon
@@ -235,7 +236,7 @@ class SvgGradientNode(SvgNode):
                     mVdAttributesMap[s] = ''
             # transformedBounds will hold the new coordinates of the gradient.
             # This applies it to the linearGradient
-            self.mLocalTransform.transform(gradientBounds, 0, transformedBounds, 0, 2)
+            self.mLocalTransform.transform5(gradientBounds, 0, transformedBounds, 0, 2)
         else:
             gradientBounds = [0.0] * 2
             transformedBounds = [0.0] * 2
@@ -259,7 +260,7 @@ class SvgGradientNode(SvgNode):
             gradientBounds[1] = cy
             transformedBounds[1] = cy
             # Transform radius, center point here.
-            self.mLocalTransform.transform(gradientBounds, 0, transformedBounds, 0, 1)
+            self.mLocalTransform.transform5(gradientBounds, 0, transformedBounds, 0, 1)
             radius = Point2DF(r, 0)
             transformedRadius = Point2DF(r, 0)
             self.mLocalTransform.deltaTransform(radius, transformedRadius)
@@ -348,7 +349,7 @@ class SvgGradientNode(SvgNode):
     def addGradientStop(self, color: str, offset: str, opacity: str):
         stop = GradientStop(color, offset)
         stop.setOpacity(opacity)
-        self.mGradientStops.add(stop)
+        self.mGradientStops.append(stop)
     
     class GradientUsage(Enum):
         FILL = 1
@@ -357,11 +358,11 @@ class SvgGradientNode(SvgNode):
     def setGradientUsage(self, gradientUsage: GradientUsage):
         self.mGradientUsage = gradientUsage
     
-    def setSvgLeafNode(self, svgLeafNode: SvgLeafNode):
+    def setSvgLeafNode(self, svgLeafNode: 'SvgLeafNode'):
         self.mSvgLeafNode = svgLeafNode
     
     def setBoundingBox(self):
-        svgPath = Path2D.Float()
+        svgPath = Path2DF()
         nodes = PathParser.parsePath(self.mSvgLeafNode.getPathData(), PathParser.ParseMode.SVG)
         VdNodeRender.createPath(nodes, svgPath)
         self.mBoundingBox = svgPath.getBounds2D()

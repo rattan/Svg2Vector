@@ -14,5 +14,5 @@ class GradientStop:
     def getOpacity(self) -> str:
         return self.opacity
 
-    def setOpacity(opacity: str):
+    def setOpacity(self, opacity: str):
         self.opacity = opacity
