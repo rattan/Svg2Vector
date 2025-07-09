@@ -46,20 +46,6 @@ class Point2D(metaclass = ABCMeta):
         y1 -= y2
         return x1 * x1 + y1 * y1
 
-    # Returns the distance between two points.
-    # @param x1 the X coordinate of the first specified point
-    # @param y1 the Y coordinate of the first specified point
-    # @param x2 the X coordinate of the second specified point
-    # @param y2 the Y coordinate of the second specified point
-    # @return the distance between the two sets of specified
-    # coordinates.
-    # @since 1.2
-    @classmethod
-    def distance(cls, x1: float, y1: float, x2: float, y2: float) -> float:
-        x1 -= x2
-        y1 -= y2
-        return math.sqrt(x1 * x1 + y1 * y1)
-
     # Returns the square of the distance from this
     # {@code Point2D} to a specified point.
     # @param px the X coordinate of the specified point to be measured
@@ -96,20 +82,8 @@ class Point2D(metaclass = ABCMeta):
     # and a specified point.
     # @since 1.2
     def distance(self, px: float, py: float) -> float:
-        px -= getX()
-        py -= getY()
-        return math.sqrt(px * px + py * py)
-
-    # Returns the distance from this {@code Point2D} to a
-    # specified {@code Point2D}.
-    # @param pt the specified point to be measured
-    #           against this {@code Point2D}
-    # @return the distance between this {@code Point2D} and
-    # the specified {@code Point2D}.
-    # @since 1.2
-    def distance(self, pt: Self) -> float:
-        px = pt.getX() - self.getX()
-        py = pt.getY() - self.getY()
+        px -= self.getX()
+        py -= self.getY()
         return math.sqrt(px * px + py * py)
 
     # The {@code Float} class defines a point specified in float

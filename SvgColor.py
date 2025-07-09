@@ -169,9 +169,9 @@ class SvgColor:
         if color.startswith("#"):
             # Convert RGBA to ARGB.
             if len(color) == 5:
-                return f'#{color[4]}{color[1: 4]}'
+                return f'#{color[4:]}{color[1: 4]}'
             elif len(color) == 9:
-                return f'#{color[7]}{color[1: 7]}'
+                return f'#{color[7:]}{color[1: 7]}'
             return color
         if 'none' == color:
             return '#00000000'

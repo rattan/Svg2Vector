@@ -81,13 +81,12 @@ class SvgNode(metaclass=ABCMeta):
         numbers = cls.getNumbers(data)
         if not numbers:
             return None
-        print(_type, data)
         numLength = len(numbers)
         parsedTransform = AffineTransform()
         if cls.MATRIX_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 6:
                 return None
-            parsedTransform.setTransform(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5])
+            parsedTransform.setTransform6(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5])
         elif cls.TRANSLATE_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1 and numLength != 2:
                 return None

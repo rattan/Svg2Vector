@@ -250,10 +250,10 @@ class SvgGradientNode(SvgNode):
             if not isUserSpaceOnUse or cyResult.isPercentage():
                 cy = height * cy + startY
             
-            rResult = getGradientCoordinate('r', 0.5)
+            rResult = self.getGradientCoordinate('r', 0.5)
             r = rResult.getValue()
             if not isUserSpaceOnUse or rResult.isPercentage():
-                r *= math.max(height, width)
+                r *= max(height, width)
             
             gradientBounds[0] = cx
             transformedBounds[0] = cx
@@ -270,13 +270,13 @@ class SvgGradientNode(SvgNode):
         
         for svgAttribute, gradientAttr in self.gradientMap.items():
             svgValue = self.mVdAttributesMap.get(svgAttribute)
-            if not svgValue or not gradientAttr:
+            if svgValue is None or not gradientAttr:
                 continue
             svgValue = svgValue.strip()
             vdValue = self.colorSvg2Vd(svgValue, '#000000')
             if not vdValue:
                 coordinateIndex = self.vectorCoordinateMap.get(svgAttribute)
-                if coordinateIndex:
+                if coordinateIndex is not None:
                     x = transformedBounds[coordinateIndex]
                     vdValue = self.mSvgTree.formatCoordinate(x)
                 elif svgAttribute == 'spreadMethod':

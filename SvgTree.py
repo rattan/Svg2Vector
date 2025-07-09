@@ -12,6 +12,7 @@ from enum import Enum
 from typing import Self
 
 import os
+import struct
 
 #Represent the SVG file in an internal data structure as a tree
 class SvgTree:
@@ -314,6 +315,7 @@ class SvgTree:
 
     # Formats and returns the given coordinate with an appropriate precision. */
     def formatCoordinate(self, coordinate: float) -> str:
+        struct.unpack('f', struct.pack('f', coordinate))[0]
         return XmlUtils.trimInsignificantZeros(self.getCoordinateFormat().format(coordinate))
 
     # Returns a {@link NumberFormat] of sufficient precision to use for formatting coordinate

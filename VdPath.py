@@ -126,11 +126,11 @@ class VdPath(VdElement):
                 currentSegmentStartY = self.mParams[1]
                 currentX = self.mParams[paramsLen - 2]
                 currentY = self.mParams[paramsLen - 1]
-                totalTransform.transform5(self.mParams, 0, self.mParams, 0, paramsLen / 2)
+                totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
             elif self.mType in ['L', 'T', 'C', 'S', 'Q']:
                 currentX = self.mParams[paramsLen - 2]
                 currentY = self.mParams[paramsLen - 1]
-                totalTransform.transform5(self.mParams, 0, self.mParams, 0, paramsLen / 2)
+                totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
             elif self.mType == 'm':
                 if previousType == 'z' or previousType == 'Z':
                     # Replace 'm' with 'M' to work around a bug in API 21 that is triggered
@@ -145,7 +145,7 @@ class VdPath(VdElement):
                         self.mParams[i + 1] += self.mParams[i + 1 - step]
                     currentX = self.mParams[paramsLen - 2]
                     currentY = self.mParams[paramsLen - 1]
-                    totalTransform.transform5(self.mParams, 0, self.mParams, 0, paramsLen / 2)
+                    totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
                 else:
                     headLen = 2
                     currentX += self.mParams[0]
@@ -155,7 +155,7 @@ class VdPath(VdElement):
                     if previousType == self.INIT_TYPE:
                         # 'm' at the start of a path is handled similar to 'M'.
                         # The coordinates are transformed as absolute.
-                        totalTransform.transform5(self.mParams, 0, self.mParams, 0, headLen / 2)
+                        totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(headLen / 2))
                     elif not self.isTranslationOnly(totalTransform):
                         self.deltaTransform(totalTransform, self.mParams, 0, headLen)
                     for i in range(headLen, paramsLen, step):

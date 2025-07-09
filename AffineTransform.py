@@ -1,4 +1,4 @@
-from Point2D import Point2DF
+from Point2D import Point2DF, Point2D
 
 from typing import Self
 import sys
@@ -85,6 +85,15 @@ class AffineTransform:
         self.m12 = Tx.m12
         self.state = Tx.state
         self.type = Tx.type
+
+    def setTransform6(self, m00: float, m10: float, m01: float, m11: float, m02: float, m12: float):
+        self.m00 = m00
+        self.m10 = m10
+        self.m01 = m01
+        self.m11 = m11
+        self.m02 = m02
+        self.m12 = m12
+
 
     # Retrieves the flag bits describing the conversion properties of
     # this transform.
@@ -523,6 +532,40 @@ class AffineTransform:
         else:
             self.stateError()
             return
+
+    def deltaTransform(self, ptSrc: Point2D, ptDst: Point2D) -> Point2D:
+        if not ptDst:
+            ptDst = Point2DF()
+
+        # Copy source coords into local variables in case src == dst
+        x = ptSrc.getX()
+        y = ptSrc.getY()
+        if self.state in {
+            self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE,
+            self.APPLY_SHEAR | self.APPLY_SCALE
+        }:
+            ptDst.setLocation(x * self.m00 + y * self.m01, x * self.m10 + y * self.m11)
+            return ptDst
+        elif self.state in {
+            self.APPLY_SHEAR | self.APPLY_TRANSLATE,
+            self.APPLY_SHEAR
+        }:
+            ptDst.setLocation(y * self.m01, x * self.m10)
+            return ptDst
+        elif self.state in {
+            self.APPLY_SCALE | self.APPLY_TRANSLATE,
+            self.APPLY_SCALE
+        }:
+            ptDst.setLocation(x * self.m00, y * self.m11)
+            return ptDst
+        elif self.state in {
+            self.APPLY_TRANSLATE,
+            self.APPLY_IDENTITY
+        }:
+            ptDst.setLocation(x, y)
+            return ptDst
+        else:
+            self.stateError()
 
     # Concatenates an {@code AffineTransform Tx} to
     # this {@code AffineTransform} Cx in the most commonly useful
