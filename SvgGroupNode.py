@@ -37,6 +37,16 @@ class SvgGroupNode(SvgNode):
                 return False
         return True
 
+    # This method original location is Svg2Vector
+    @classmethod
+    def parseFloatOrDefault(cls, value: str, defaultValue: float) -> float:
+        if value:
+            try:
+                return float(value)
+            except Exception as e:
+                pass
+        return defaultValue
+
     # Duplicate the node referenced in the 'use' group and propagate any attributes to its
     # children.
     def handleUse(self):

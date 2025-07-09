@@ -183,7 +183,7 @@ class Path2DF(Path2D):
 
     def quadTo(self, x1: float, y1: float, x2: float, y2: float):
             self.needRoom(True, 4)
-            self.pointTypes[self.numTypes] = SEG_QUADTO
+            self.pointTypes[self.numTypes] = self.SEG_QUADTO
             self.numTypes += 1
             self.floatCoords[self.numCoords] = x1
             self.numCoords += 1
@@ -196,7 +196,7 @@ class Path2DF(Path2D):
 
     def curveTo(self, x1: float,y1: float,x2: float,y2: float,x3: float,y3: float):
             self.needRoom(True, 6)
-            self.pointTypes[self.numTypes] = SEG_CUBICTO
+            self.pointTypes[self.numTypes] = self.SEG_CUBICTO
             self.numTypes += 1
             self.floatCoords[self.numCoords] = x1
             self.numCoords += 1

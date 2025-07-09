@@ -1,4 +1,4 @@
-from Point2D import Point2DF, Point2D
+from Point2D import Point2DF, Point2D\
 
 from typing import Self
 import sys
@@ -134,9 +134,7 @@ class AffineTransform:
         M2 = 0.0
         M3 = 0.0
         self.updateState()
-        if self.type == self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE:
-            ret = self.TYPE_TRANSLATION
-        elif self.type == self.APPLY_SHEAR | self.APPLY_SCALE:
+        if self.state == self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE:
             ret = self.TYPE_TRANSLATION
             M0 = self.m00
             M2 = self.m01
@@ -165,9 +163,35 @@ class AffineTransform:
                     ret |= self.TYPE_GENERAL_ROTATION | self.TYPE_FLIP | self.TYPE_UNIFORM_SCALE
                 else:
                     ret |= self.TYPE_GENERAL_ROTATION | self.TYPE_FLIP
-        elif self.type == self.APPLY_SHEAR | self.APPLY_TRANSLATE:
-            ret = self.TYPE_TRANSLATION
-        elif self.type == self.APPLY_SHEAR:
+        elif self.state == self.APPLY_SHEAR | self.APPLY_SCALE:
+            M0 = self.m00
+            M2 = self.m01
+            M3 = self.m10
+            M1 = self.m11
+            if M0 * M2 + M3 * M1 != 0:
+                self.type = self.TYPE_GENERAL_TRANSFORM
+                return
+            sgn0 = 0.0 <= M0
+            sgn1 = 0.0 <= M1
+            if sgn0 == sgn1:
+                # sgn(M0) == sgn(M1) therefore sgn(M2) == -sgn(M3)
+                # This is the "unflipped" (right-handed) state
+                if M0 != M1 or M2 != -M3:
+                    ret |= self.TYPE_GENERAL_ROTATION | self.TYPE_GENERAL_SCALE
+                elif M0 * M1 - M2 * M3 != 1.0:
+                    ret |= self.TYPE_GENERAL_ROTATION | self.TYPE_UNIFORM_SCALE
+                else:
+                    ret |= self.TYPE_GENERAL_ROTATION
+            else:
+                # sgn(M0) == -sgn(M1) therefore sgn(M2) == sgn(M3)
+                # This is the "flipped" (left-handed) state
+                if M0 != -M1 or M2 != M3:
+                    ret |= self.TYPE_GENERAL_ROTATION | self.TYPE_FLIP | self.TYPE_GENERAL_SCALE
+                elif M0 * M1 - M2 * M3 != 1.0:
+                    ret |= self.TYPE_GENERAL_ROTATION | self.TYPE_FLIP | self.TYPE_UNIFORM_SCALE
+                else:
+                    ret |= self.TYPE_GENERAL_ROTATION | self.TYPE_FLIP
+        elif self.state == self.APPLY_SHEAR | self.APPLY_TRANSLATE:
             ret = self.TYPE_TRANSLATION
             M0 = self.m01
             M1 = self.m10
@@ -187,9 +211,26 @@ class AffineTransform:
                     ret |= self.TYPE_QUADRANT_ROTATION | self.TYPE_FLIP | self.TYPE_UNIFORM_SCALE
                 else:
                     ret |= self.TYPE_QUADRANT_ROTATION | self.TYPE_FLIP | self.TYPE_GENERAL_SCALE
-        elif self.type == self.APPLY_SCALE | self.APPLY_TRANSLATE:
-            ret = self.TYPE_TRANSLATION
-        elif self.type == self.APPLY_SCALE:
+        elif self.state == self.APPLY_SHEAR:
+            M0 = self.m01
+            M1 = self.m10
+            sgn0 = 0.0 <= M0
+            sgn1 = 0.0 <= M1
+            if sgn0 != sgn1:
+                # Different signs - simple 90 degree rotation
+                if M0 != -M1:
+                    ret |= self.TYPE_QUADRANT_ROTATION | self.TYPE_GENERAL_SCALE
+                elif M0 != 1.0 and M0 != -1.0:
+                    ret |= self.TYPE_QUADRANT_ROTATION | self.TYPE_UNIFORM_SCALE
+                else:
+                    ret |= self.TYPE_QUADRANT_ROTATION
+            else:
+                # Same signs - 90 degree rotation plus an axis flip too
+                if M0 == M1:
+                    ret |= self.TYPE_QUADRANT_ROTATION | self.TYPE_FLIP | self.TYPE_UNIFORM_SCALE
+                else:
+                    ret |= self.TYPE_QUADRANT_ROTATION | self.TYPE_FLIP | self.TYPE_GENERAL_SCALE
+        elif self.state == self.APPLY_SCALE | self.APPLY_TRANSLATE:
             ret = self.TYPE_TRANSLATION
             M0 = self.m00
             M1 = self.m11
@@ -220,13 +261,67 @@ class AffineTransform:
                         ret |= self.TYPE_FLIP | self.TYPE_UNIFORM_SCALE
                 else:
                     ret |= self.TYPE_FLIP | self.TYPE_GENERAL_SCALE
-        elif self.type == self.APPLY_TRANSLATE:
+        elif self.state == self.APPLY_SCALE:
+            M0 = self.m00
+            M1 = self.m11
+            sgn0 = 0.0 <= M0
+            sgn1 = 0.0 <= M1
+            if sgn0 == sgn1:
+                if sgn0:
+                    # Both scaling factors non-negative - simple scale
+                    # Note: APPLY_SCALE implies M0, M1 are not both 1
+                    if M0 == M1:
+                        ret |= self.TYPE_UNIFORM_SCALE
+                    else:
+                        ret |= self.TYPE_GENERAL_SCALE
+                else:
+                    # Both scaling factors negative - 180 degree rotation
+                    if M0 != M1:
+                        ret |= self.TYPE_QUADRANT_ROTATION | self.TYPE_GENERAL_SCALE
+                    elif M0 != -1.0:
+                        ret |= self.TYPE_QUADRANT_ROTATION | self.TYPE_UNIFORM_SCALE
+                    else:
+                        ret |= self.TYPE_QUADRANT_ROTATION
+            else:
+                # Scaling factor signs different - flip about some axis
+                if M0 == -M1:
+                    if M0 == 1.0 or M0 == -1.0:
+                        ret |= self.TYPE_FLIP
+                    else:
+                        ret |= self.TYPE_FLIP | self.TYPE_UNIFORM_SCALE
+                else:
+                    ret |= self.TYPE_FLIP | self.TYPE_GENERAL_SCALE
+        elif self.state == self.APPLY_TRANSLATE:
             ret = self.TYPE_TRANSLATION
-        elif self.type == self.APPLY_IDENTITY:
+        elif self.state == self.APPLY_IDENTITY:
             pass
         else:
-            stateError()
+            self.stateError()
         self.type = ret
+
+    def getDeterminant(self) -> float:
+        if self.state in {
+            self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE,
+            self.APPLY_SHEAR | self.APPLY_SCALE
+        }:
+            return self.m00 * self.m11 - self.m01 * self.m10
+        elif self.state in {
+            self.APPLY_SHEAR | self.APPLY_TRANSLATE,
+            self.APPLY_SHEAR,
+        }:
+            return -self.m01 * self.m10
+        elif self.state in {
+            self.APPLY_SCALE | self.APPLY_TRANSLATE,
+            self.APPLY_SCALE
+        }:
+            return self.m00 * self.m11
+        elif self.state in {
+            self.APPLY_TRANSLATE,
+            self.APPLY_IDENTITY
+        }:
+            return 1.0
+        else:
+            self.stateError()
 
     # Transforms the specified {@code ptSrc} and stores the result
     # in {@code ptDst}.
@@ -268,7 +363,7 @@ class AffineTransform:
         else:
             self.stateError()
             return None
-        return tpDst
+        return ptDst
 
     # Transforms an array of floating point coordinates by this transform.
     # The two coordinate array sections can be exactly the same or
@@ -564,6 +659,71 @@ class AffineTransform:
         }:
             ptDst.setLocation(x, y)
             return ptDst
+        else:
+            self.stateError()
+
+    def deltaTransform5(self, srcPts: list[float], srcOff: int, dstPts: list[float], dstOff: int, numPts: int):
+        if dstPts is srcPts and dstOff > srcOff and dstOff < srcOff + numPts * 2:
+            # Handle overlapping arrays by copying to a temporary location first
+            dstPts[dstOff:dstOff + numPts * 2] = srcPts[srcOff : srcOff + numPts * 2]
+            srcOff = dstOff
+
+        if self.state in {
+            self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE,
+            self.APPLY_SHEAR | self.APPLY_SCALE
+        }:
+            M00 = self.m00
+            M01 = self.m01
+            M10 = self.m10
+            M11 = self.m11
+            for _ in range(numPts):
+                x = srcPts[srcOff]
+                srcOff += 1
+                y = srcPts[srcOff]
+                srcOff += 1
+                dstPts[dstOff] = x * M00 + y * M01
+                dstOff += 1
+                dstPts[dstOff] = x * M10 + y * M11
+                dstOff += 1
+            return
+        elif self.state in {
+            self.APPLY_SHEAR | self.APPLY_TRANSLATE,
+            self.APPLY_SHEAR
+        }:
+            M01 = self.m01
+            M10 = self.m10
+            for _ in range(numPts):
+                x = srcPts[srcOff]
+                srcOff += 1
+                y = srcPts[srcOff]
+                srcOff += 1
+                dstPts[dstOff] = x * M00 + y * M01
+                dstOff += 1
+                dstPts[dstOff] = x * M10 + y * M11
+                dstOff
+            return
+        elif self.state in {
+            self.APPLY_SCALE | self.APPLY_TRANSLATE,
+            self.APPLY_SCALE
+        }:
+            M00 = self.m00
+            M11 = self.m11
+            for _ in range(numPts):
+                dstPts[dstOff] = srcPts[srcOff] * M00
+                dstOff += 1
+                srcOff += 1
+                dstPts[dstOff] = srcPts[srcOff] * M11
+                dstOff += 1
+                srcOff += 1
+            return
+        elif self.state in {
+            self.APPLY_TRANSLATE,
+            self.APPLY_IDENTITY
+        }:
+            if srcPts is not dstPts or srcOff != dstOff:
+                # Python's list slicing creates a shallow copy, which works like arraycopy for primitive types.
+                dstPts[dstOff : dstOff + numPts * 2] = srcPts[srcOff : srcOff + numPts * 2]
+            return
         else:
             self.stateError()
 
@@ -1148,7 +1308,6 @@ class AffineTransform:
     # @since 1.2
     def translate(self, tx: float, ty: float):
         current_state = self.state
-
         if current_state == self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE:
             self.m02 = tx * self.m00 + ty * self.m01 + self.m02
             self.m12 = tx * self.m10 + ty * self.m11 + self.m12
@@ -1179,7 +1338,7 @@ class AffineTransform:
                 self.state = self.APPLY_SHEAR | self.APPLY_TRANSLATE
                 self.type |= self.TYPE_TRANSLATION
             return
-        elif current_state == (self.APPLY_SCALE | self.APPLY_TRANSLATE):
+        elif current_state == self.APPLY_SCALE | self.APPLY_TRANSLATE:
             self.m02 = tx * self.m00 + self.m02
             self.m12 = ty * self.m11 + self.m12
             if self.m02 == 0.0 and self.m12 == 0.0:
@@ -1305,10 +1464,10 @@ class AffineTransform:
             if self.m01 == 0 and self.m10 == 0:
                 current_state &= self.APPLY_TRANSLATE
                 if self.m00 == 1.0 and self.m11 == 1.0:
-                    self.type = self.TYPE_IDENTITY if current_state == APPLY_IDENTITY else self.TYPE_TRANSLATION
+                    self.type = self.TYPE_IDENTITY if current_state == self.APPLY_IDENTITY else self.TYPE_TRANSLATION
                 else:
-                    current_state |= APPLY_SCALE
-                    self.type = TYPE_UNKNOWN
+                    current_state |= self.APPLY_SCALE
+                    self.type = self.TYPE_UNKNOWN
                 self.state = current_state
             return
         elif current_state in {
@@ -1320,10 +1479,10 @@ class AffineTransform:
             if self.m01 == 0 and self.m10 == 0:
                 current_state &= self.APPLY_TRANSLATE
                 if self.m00 == 1.0 and self.m11 == 1.0:
-                    self.type = self.TYPE_IDENTITY if current_state == APPLY_IDENTITY else self.TYPE_TRANSLATION
+                    self.type = self.TYPE_IDENTITY if current_state == self.APPLY_IDENTITY else self.TYPE_TRANSLATION
                 else:
-                    current_state |= APPLY_SCALE
-                    self.type = TYPE_UNKNOWN
+                    current_state |= self.APPLY_SCALE
+                    self.type = self.TYPE_UNKNOWN
                 self.state = current_state
             return
         elif current_state in {

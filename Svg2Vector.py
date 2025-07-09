@@ -235,7 +235,7 @@ class Svg2Vector:
         pendingUseSet = set(nodes)
         while nodes:
             nl = len(nodes)
-            nodes = {n for n in nodes if n.resoveHref(svgTree)}
+            nodes = {n for n in nodes if not n.resolveHref(svgTree)}
             if nl == len(nodes):
                 cls.reportCycles(svgTree, nodes)
                 return
@@ -674,7 +674,7 @@ class Svg2Vector:
         #print(f'Rect found{currentGroupNode.getTextContent()}')
         if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
             attributes = currentGroupNode.attributes
-            for itemIndex in range(attributes):
+            for itemIndex in range(attributes.length):
                 n = attributes.item(itemIndex)
                 name = n.nodeName
                 value = n.nodeValue
@@ -694,7 +694,7 @@ class Svg2Vector:
                         for i in range(2, len(splt), 2):
                             x = float(splt[i])
                             y = float(splt[i + 1])
-                            builder.reltiveLineTo(x - baseX, y - baseY)
+                            builder.relativeLineTo(x - baseX, y - baseY)
                             baseX = x
                             baseY = y
                         if currentGroupNode.nodeName == cls.SVG_POLYGON:
@@ -830,7 +830,7 @@ class Svg2Vector:
     
     # Convert ellipse element into a path
     @classmethod
-    def extraceEllipseItem(cls, svg: SvgTree, child: SvgLeafNode, currentGroupNode: minidom.Node, currentGroup: SvgGroupNode):
+    def extractEllipseItem(cls, svg: SvgTree, child: SvgLeafNode, currentGroupNode: minidom.Node, currentGroup: SvgGroupNode):
         # print(f'ellipse found{currentGroupNode.textContent}')
 
         if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
@@ -911,7 +911,7 @@ class Svg2Vector:
                     svgTree.addAffectedNodeToStyleClass(f'line.{value}', child)
                     svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
 
-            if pureTransparent == False and avg and x1 != float('nan') and y1 != float('nan') and x2 != float('nan') and y2 != float('nan'):
+            if pureTransparent == False and svg and x1 != float('nan') and y1 != float('nan') and x2 != float('nan') and y2 != float('nan'):
                 # "M x1, y1 L x2, y2"
                 builder = PathBuilder()
                 builder.absoluteMoveTo(x1, y1)
@@ -963,15 +963,6 @@ class Svg2Vector:
                         parentNode = path.getTree().findParent(path)
                         if parentNode:
                             path.getTree().addClipPathAffectedNode(path, parentNode, val)
-
-    @classmethod
-    def parseFloatOrDefault(cls, value: str, defaultValue: float) -> float:
-        if value:
-            try:
-                return float(value)
-            except Exception as e:
-                pass
-        return defaultValue
     
     # def getSizeString(cls. w, h, scaleFactor):
     #     return f'        android:width="{int(w * scaleFactor)}dp"\n        android:height="{int(h * scaleFactor)}dp"\n'

@@ -1,4 +1,4 @@
-from Point2D import Point2DF
+from Point2D import Point2DF, Point2D
 from AffineTransform import AffineTransform
 import math
 
@@ -56,7 +56,7 @@ class EllipseSolver:
         # Check if the direction has changed.
         self.mDirectionChanged = self.computeDirectionChange(middlePoint, majorAxisPoint, minorAxisPoint, mDstMiddlePoint, mDstMajorAxisPoint, mDstMinorAxisPoint)
         # From 3 dest points, recompute the a, b and theta.
-        if computeABThetaFromControlPoints(relativeDstMiddleX, relativeDstMiddleY, relativeDstMajorAxisPointX, relativeDstMajorAxisPointY, relativeDstMinorAxisPointX, relativeDstMinorAxisPointY):
+        if self.computeABThetaFromControlPoints(relativeDstMiddleX, relativeDstMiddleY, relativeDstMajorAxisPointX, relativeDstMajorAxisPointY, relativeDstMinorAxisPointX, relativeDstMinorAxisPointY):
             # print('Early return in the ellipse transformation computation!')
             pass
 
@@ -67,8 +67,8 @@ class EllipseSolver:
     @classmethod
     def computeDirectionChange(cls, middlePoint: Point2DF, majorAxisPoint: Point2DF, minorAxisPoint: Point2DF, dstMiddlePoint: Point2DF, dstMajorAxisPoint: Point2DF, dstMinorAxisPoint: Point2DF) -> float:
         # Compute both cross product, then compare the sign.
-        srcCrossProduct = self.getCrossProduct(middlePoint, majorAxisPoint, minorAxisPoint)
-        dstCrossProduct = self.getCrossProduct(dstMiddlePoint, dstMajorAxisPoint, dstMinorAxisPoint)
+        srcCrossProduct = cls.getCrossProduct(middlePoint, majorAxisPoint, minorAxisPoint)
+        dstCrossProduct = cls.getCrossProduct(dstMiddlePoint, dstMajorAxisPoint, dstMinorAxisPoint)
         return srcCrossProduct * dstCrossProduct < 0
 
     @classmethod
@@ -123,7 +123,7 @@ class EllipseSolver:
             return True
         self.mMinorAxis = float(math.sqrt(1 / bSqInv))
         self.mMajorAxis = float(math.sqrt(1 / aSqInv))
-        self.mRotationDegree = float(math.todegrees(math.pi / 2 + thetaInRadians))
+        self.mRotationDegree = float(math.degrees(math.pi / 2 + thetaInRadians))
         return False
 
     @classmethod
@@ -168,7 +168,7 @@ class EllipseSolver:
     # @param radians the rotation angle in radians
     # @return the rotated point
     @classmethod
-    def rotatePoint2D(cls, inPoint: Point2DF, radians: double): Point2DF:
+    def rotatePoint2D(cls, inPoint: Point2D, radians: float) -> Point2D:
         cos = math.cos(radians)
         sin = math.sin(radians)
         return Point2DF(inPoint.x * cos - inPoint.y * sin, inPoint.x * sin + inPoint.y * cos)

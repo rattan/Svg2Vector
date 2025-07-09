@@ -1,5 +1,6 @@
 from VdElement import VdElement
 from AffineTransform import AffineTransform
+from EllipseSolver import EllipseSolver
 from Point2D import Point2DF
 
 import math
@@ -152,7 +153,7 @@ class VdPath(VdElement):
                     currentY += self.mParams[1]
                     currentSegmentStartX = currentX # Start a new segment.
                     currentSegmentStartY = currentY
-                    if previousType == self.INIT_TYPE:
+                    if previousType == VdPath.INIT_TYPE:
                         # 'm' at the start of a path is handled similar to 'M'.
                         # The coordinates are transformed as absolute.
                         totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(headLen / 2))
@@ -192,8 +193,8 @@ class VdPath(VdElement):
                     tempParams[i * 2] = self.mParams[i]
                     tempParams[i * 2 + 1] = 0
                 if not self.isTranslationOnly(totalTransform):
-                    mType = 'l'
-                    deltaTransform(totalTransform, tempParams, 0, 2 * paramsLen)
+                    self.mType = 'l'
+                    self.deltaTransform(totalTransform, tempParams, 0, 2 * paramsLen)
                     self.mParams = tempParams
             elif self.mType == 'v':
                 for i in range(paramsLen):
@@ -202,8 +203,8 @@ class VdPath(VdElement):
                     tempParams[i * 2 + 1] = self.mParams[i]
                     currentY += self.mParams[i]
                 if not self.isTranslationOnly(totalTransform):
-                    mType = 'l'
-                    deltaTransform(totalTransform, tempParams, 0, 2 * paramsLen)
+                    self.mType = 'l'
+                    self.deltaTransform(totalTransform, tempParams, 0, 2 * paramsLen)
                     self.mParams = tempParams
             elif self.mType == 'A':
                 for i in range(0, paramsLen - step + 1, step):
@@ -254,17 +255,17 @@ class VdPath(VdElement):
         # @param offset in number of floats, not points
         # @param paramsLen in number of floats, not points
         @classmethod
-        def deltaTransform(totalTransform: AffineTransform, coordinates: list, offset: int, paramsLen: int):
+        def deltaTransform(cls, totalTransform: AffineTransform, coordinates: list, offset: int, paramsLen: int):
             doubleArray = [0.0] * paramsLen
             for i in range(paramsLen):
                 doubleArray[i] = coordinates[i + offset]
-            totalTransform.deltaTransform(doubleArray, 0, doubleArray, 0, paramsLen / 2)
+            totalTransform.deltaTransform5(doubleArray, 0, doubleArray, 0, int(paramsLen / 2))
             for i in range(paramsLen):
                 coordinates[i + offset] = doubleArray[i]
 
     @classmethod
     def applyAlpha(cls, color: int, alpha: float) -> int:
         alphaBytes = (color >> 24) & 0xff
-        color &= 0x00FFFFFF;
+        color &= 0x00FFFFFF
         color |= int(alphaBytes * alpha) << 24
         return color

@@ -1,6 +1,8 @@
 from Path2D import Path2D
 from VdPath import VdPath
 
+import math
+
 class VdNodeRender:
     @classmethod
     def createPath(cls, nodes: list[VdPath.Node], path: Path2D):

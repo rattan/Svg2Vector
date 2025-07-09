@@ -79,7 +79,7 @@ class PathBuilder:
         return self
 
     def relativeArcTo(self, rx, ry, rotation, largeArc, sweep, x, y) -> Self:
-        self.mPathData += f'a{XmlUtils.formatFloatValue(rx)},{XmlUtils.formatFloatValue(ry)},{self.encodeBoolean(rotation)},{self.bencodeBooleanooleanToString(largeArc)},{self.encodeBoolean(sweep)},{XmlUtils.formatFloatValue(x)},{XmlUtils.formatFloatValue(y)}'
+        self.mPathData += f'a{XmlUtils.formatFloatValue(rx)},{XmlUtils.formatFloatValue(ry)},{self.encodeBoolean(rotation)},{self.encodeBoolean(largeArc)},{self.encodeBoolean(sweep)},{XmlUtils.formatFloatValue(x)},{XmlUtils.formatFloatValue(y)}'
         return self
 
     def absoluteClose(self) -> Self:

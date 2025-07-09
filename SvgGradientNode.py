@@ -233,7 +233,7 @@ class SvgGradientNode(SvgNode):
                 # We need mVdAttributesMap to contain all coordinates regardless if they are
                 # specified in the SVG in order to write the default value to the VD XML.
                 if s not in self.mVdAttributesMap:
-                    mVdAttributesMap[s] = ''
+                    self.mVdAttributesMap[s] = ''
             # transformedBounds will hold the new coordinates of the gradient.
             # This applies it to the linearGradient
             self.mLocalTransform.transform5(gradientBounds, 0, transformedBounds, 0, 2)

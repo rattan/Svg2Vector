@@ -143,7 +143,7 @@ class SvgLeafNode(SvgNode):
 
         if 'non-scaling-stroke' != self.mVdAttributesMap.get('vector-effect') and (self.mStackedTransform.getType() & AffineTransform.TYPE_MASK_SCALE) != 0:
             strokeWidth = self.mVdAttributesMap.get('stroke-width')
-            if strokeWidth:
+            if strokeWidth is not None:
                 try:
                     # Unlike SVG, vector drawable is not capable of applying transformations
                     # to stroke outline. To compensate for that we apply scaling transformation
@@ -152,7 +152,7 @@ class SvgLeafNode(SvgNode):
                     width = float(strokeWidth)
                     determinant = self.mStackedTransform.getDeterminant()
                     if determinant != 0:
-                        width *= math.sqrt(math.abs(determinant))
+                        width *= math.sqrt(abs(determinant))
                         self.mVdAttributesMap['stroke-width'] = self.mSvgTree.formatCoordinate(width)
                     if (self.mStackedTransform.getType() & AffineTransform.TYPE_GENERAL_SCALE) != 0:
                         # print('Scaling of the stroke width is approximate')
@@ -192,7 +192,7 @@ class SvgLeafNode(SvgNode):
         writer.write(indent)
         writer.write('<path')
         writer.write(os.linesep)
-        if not fillColor and not mFillGradientNode:
+        if not fillColor and not self.mFillGradientNode:
             # print('Adding default fill color')
             writer.write(indent)
             writer.write(self.CONTINUATION_INDENT)
