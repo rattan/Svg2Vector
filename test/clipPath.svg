@@ -1,0 +1,14 @@
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <clipPath id="my-clip-path">
+    <circle cx="200" cy="200" r="200" />
+    <circle cx="600" cy="200" r="100" />
+    <circle cx="600" cy="600" r="150" />
+    <circle cx="200" cy="600" r="120" />
+  </clipPath>
+
+  <rect
+    clip-path="url(#my-clip-path)" x="195" y="197"
+    width="477" height="455"
+    fill="#FF4DC2" stroke="#B30077" stroke-width="11"
+  ></rect>
+</svg>

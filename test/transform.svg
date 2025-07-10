@@ -1,0 +1,11 @@
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <rect
+    transform="translate(282 102) rotate(94) skewX(38) skewY(2) scale(0.75)"
+    transform-origin="234 107"
+    x="200"
+    y="200"
+    width="400"
+    height="400"
+    fill="#444BEA"
+  ></rect>
+</svg>

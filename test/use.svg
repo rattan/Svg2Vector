@@ -1,0 +1,10 @@
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <g id="my-face">
+    <circle cx="204.5" cy="588.5" r="125" fill="#FFA34D" />
+    <circle cx="174.5" cy="538.5" r="16.5" fill="#B35600" />
+    <circle cx="238.5" cy="538.5" r="16.5" fill="#B35600" />
+    <ellipse cx="205" cy="639" rx="32" ry="13" fill="#B35600" />
+  </g>
+
+  <use href="#my-face" x="218" y="-577" transform="skewY(36)" />
+</svg>
