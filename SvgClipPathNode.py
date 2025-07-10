@@ -88,33 +88,32 @@ class SvgClipPathNode(SvgGroupNode):
         clipPaths = {}
         class ClipPathCollector(self.Visitor):
             def visit(self, node: SvgNode):
-                if node is SvgLeafNode:
+                if isinstance(node, SvgLeafNode):
                     pathData = node.getPathData()
                     if pathData:
-                        clipRule = ClipRule.EVEN_ODD if "evenOdd" == 'clip-rule' in node.mVdAttributesMap else ClipRule.NON_ZERO
-                        paths = self.clipPaths.setDefault(clipRule, []);
+                        clipRule = SvgNode.ClipRule.EVEN_ODD if "evenOdd" == 'clip-rule' in node.mVdAttributesMap else SvgNode.ClipRule.NON_ZERO
+                        paths = clipPaths.setdefault(clipRule, [])
                         paths.append(pathData)
                 return SvgNode.VisitResult.CONTINUE
-        clipPathCollector = ClipPathCollector()
 
         for node in self.mChildren:
-            node.accept(clipPathCollector)
+            node.accept(ClipPathCollector())
         for clipRule, pathData in clipPaths.items():
             writer.write(incrementedIndent)
             writer.write('<')
-            writer.write('path')
+            writer.write('clip-path')
             writer.write(os.linesep)
             writer.write(incrementedIndent)
             writer.write(self.INDENT_UNIT)
             writer.write(self.INDENT_UNIT)
             writer.write('android:pathData="')
             for i, path in enumerate(pathData):
-                if 0 < i and not path.startsWith('M'):
+                if 0 < i and not path.startswith('M'):
                     # Reset the current position to the origin of the coordinate system.
                     writer.write('M 0,0')
                 writer.write(path)
             writer.write('"')
-            if clipRule == ClipRule.EVEN_ODD:
+            if clipRule == SvgNode.ClipRule.EVEN_ODD:
                 writer.write(os.linesep)
                 writer.write(incrementedIndent)
                 writer.write(self.INDENT_UNIT)

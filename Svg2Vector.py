@@ -624,7 +624,9 @@ class Svg2Vector:
         if cls.SVG_CIRCLE == currentItem.nodeName:
             cls.extractCircleItem(svg, child, currentItem, currentGroup)
 
-        if cls.SVG_POLYGON == currentItem.nodeName:
+        if currentItem.nodeName in {
+            cls.SVG_POLYGON, cls.SVG_POLYLINE
+        }:
             cls.extractPolyItem(svg, child, currentItem, currentGroup)
 
         if cls.SVG_LINE == currentItem.nodeName:
