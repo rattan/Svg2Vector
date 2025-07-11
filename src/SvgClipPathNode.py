@@ -91,7 +91,7 @@ class SvgClipPathNode(SvgGroupNode):
                 if isinstance(node, SvgLeafNode):
                     pathData = node.getPathData()
                     if pathData:
-                        clipRule = SvgNode.ClipRule.EVEN_ODD if "evenOdd" == 'clip-rule' in node.mVdAttributesMap else SvgNode.ClipRule.NON_ZERO
+                        clipRule = SvgNode.ClipRule.EVEN_ODD if "evenOdd" == node.mVdAttributesMap.get('clip-rule') else SvgNode.ClipRule.NON_ZERO
                         paths = clipPaths.setdefault(clipRule, [])
                         paths.append(pathData)
                 return SvgNode.VisitResult.CONTINUE

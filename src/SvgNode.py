@@ -24,15 +24,18 @@ class SvgNode(metaclass=ABCMeta):
     SKEWY_ATTRIBUTE = 'skewY'
 
     presentationMap = {
-        'stroke': 'android:strokeColor',
-        'stroke-opacity': 'android:strokeAlpha',
-        'stroke-linejoin': 'android:strokeLineJoin',
-        'stroke-linecap': 'android:strokeLineCap',
-        'stroke-width': 'android:strokeWidth',
+        'clip': 'android:clip',
+        'clip-rule': '',     # Treated individually.
         'fill': 'android:fillColor',
         'fill-opacity': 'android:fillAlpha',
-        'clip': 'android:clip',
-        'opacity': 'android:fillAlpha'
+        'fill-rule': 'android:fillType',
+        'opacity': '',       # Treated individually.
+        'paint-order': '',   # Treated individually.
+        'stroke': 'android:strokeColor',
+        'stroke-linecap': 'android:strokeLineCap',
+        'stroke-linejoin': 'android:strokeLineJoin',
+        'stroke-opacity': 'android:strokeAlpha',
+        'stroke-width': 'android:strokeWidth'
     }
 
     # While parsing the translate() rotate() ..., update the {@code mLocalTransform}.
