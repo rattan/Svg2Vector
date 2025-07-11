@@ -1,20 +1,19 @@
-from Point2D import Point2DF
-from VdPath import VdPath
-from GradientStop import GradientStop
-from StreamWriter import StreamWriter
-from SvgNode import SvgNode
-from AffineTransform import AffineTransform
-from XmlUtils import XmlUtils
-from Path2D import Path2DF
-from VdNodeRender import VdNodeRender
-from PathParser import PathParser
-from VdUtil import VdUtil
-
-from xml.dom import minidom
 from enum import Enum
-from typing import Self
-
 import os
+from typing import Self
+from xml.dom import minidom
+
+from AffineTransform import AffineTransform
+from GradientStop import GradientStop
+from OutputStreamWriter import OutputStreamWriter
+from Path2D import Path2DF
+from PathParser import PathParser
+from Point2D import Point2DF
+from SvgNode import SvgNode
+from XmlUtils import XmlUtils
+from VdNodeRender import VdNodeRender
+from VdPath import VdPath
+from VdUtil import VdUtil
 
 
 # Represents an SVG gradient that is referenced by a SvgLeafNode.
@@ -139,7 +138,7 @@ class SvgGradientNode(SvgNode):
             pass
         return self.GradientCoordResult(val, isPercentage)
 
-    def writeXml(self, writer: StreamWriter, indent: str):
+    def writeXml(self, writer: OutputStreamWriter, indent: str):
         if not self.mGradientStops:
             # print('Gradient has no stop info')
             return
@@ -236,7 +235,7 @@ class SvgGradientNode(SvgNode):
                     self.mVdAttributesMap[s] = ''
             # transformedBounds will hold the new coordinates of the gradient.
             # This applies it to the linearGradient
-            self.mLocalTransform.transform5(gradientBounds, 0, transformedBounds, 0, 2)
+            self.mLocalTransform.transform(gradientBounds, 0, transformedBounds, 0, 2)
         else:
             gradientBounds = [0.0] * 2
             transformedBounds = [0.0] * 2
@@ -260,7 +259,7 @@ class SvgGradientNode(SvgNode):
             gradientBounds[1] = cy
             transformedBounds[1] = cy
             # Transform radius, center point here.
-            self.mLocalTransform.transform5(gradientBounds, 0, transformedBounds, 0, 1)
+            self.mLocalTransform.transform(gradientBounds, 0, transformedBounds, 0, 1)
             radius = Point2DF(r, 0)
             transformedRadius = Point2DF(r, 0)
             self.mLocalTransform.deltaTransform(radius, transformedRadius)
@@ -316,7 +315,7 @@ class SvgGradientNode(SvgNode):
         writer.write('</aapt:attr>')
         writer.write(os.linesep)
     
-    def writeGradientStops(self, writer: StreamWriter, indent: str):
+    def writeGradientStops(self, writer: OutputStreamWriter, indent: str):
         for g in self.mGradientStops:
             color = g.getColor()
             opacity = 1.0

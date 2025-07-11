@@ -1,7 +1,7 @@
 from abc import *
+import math
 from typing import Self
 
-import math
 
 class Rectangle2D(metaclass = ABCMeta):
     OUT_LEFT = 1

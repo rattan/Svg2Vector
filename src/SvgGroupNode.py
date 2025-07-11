@@ -1,9 +1,9 @@
-from StreamWriter import StreamWriter
-from AffineTransform import AffineTransform
-
-from SvgNode import SvgNode
-from xml.dom import minidom
 from typing import Self
+from xml.dom import minidom
+
+from AffineTransform import AffineTransform
+from OutputStreamWriter import OutputStreamWriter
+from SvgNode import SvgNode
 
 # Represent a SVG file's group element
 class SvgGroupNode(SvgNode):
@@ -114,9 +114,9 @@ class SvgGroupNode(SvgNode):
         for node in self.mChildren:
             node.validate()
 
-    def writeXml(self, streamWriter: StreamWriter, indent: str):
+    def writeXml(self, OutputStreamWriter: OutputStreamWriter, indent: str):
         for node in self.mChildren:
-            node.writeXml(streamWriter, indent)
+            node.writeXml(OutputStreamWriter, indent)
     
     def accpet(self, visitor: SvgNode.Visitor) -> SvgNode.VisitResult:
         result = visitor.visit(self)

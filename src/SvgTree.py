@@ -1,18 +1,17 @@
-from AffineTransform import AffineTransform
-from SvgNode import SvgNode
-from SvgGroupNode import SvgGroupNode
-from SvgGradientNode import SvgGradientNode
-from StreamWriter import StreamWriter
-from VdUtil import VdUtil
-from XmlUtils import XmlUtils
 
-
-from xml.dom import minidom
 from enum import Enum
-from typing import Self
-
 import os
 import struct
+from typing import Self
+from xml.dom import minidom
+
+from AffineTransform import AffineTransform
+from OutputStreamWriter import OutputStreamWriter
+from SvgGradientNode import SvgGradientNode
+from SvgGroupNode import SvgGroupNode
+from SvgNode import SvgNode
+from VdUtil import VdUtil
+from XmlUtils import XmlUtils
 
 #Represent the SVG file in an internal data structure as a tree
 class SvgTree:
@@ -327,7 +326,7 @@ class SvgTree:
             self.mCoordinateFormat = VdUtil.getCoordinateFormat(max(viewportHeight, viewportWidth))
         return self.mCoordinateFormat
 
-    def writeXml(self, writer: StreamWriter):
+    def writeXml(self, writer: OutputStreamWriter):
         if not self.mRoot:
             raise ValueError('SvgTree is not fully initialized')
         writer.write(self.HEAD)

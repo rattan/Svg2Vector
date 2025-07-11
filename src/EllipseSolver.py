@@ -1,6 +1,7 @@
-from Point2D import Point2DF, Point2D
-from AffineTransform import AffineTransform
 import math
+
+from AffineTransform import AffineTransform
+from Point2D import Point2DF, Point2D
 
 class EllipseSolver:
     # Constructs the solver with all necessary parameters, and all the output values will
@@ -40,10 +41,10 @@ class EllipseSolver:
         middlePoint.x += originalCenter.x
         middlePoint.y += originalCenter.y
         # Transform 3 points and center point into destination.
-        mDstMiddlePoint = totalTransform.transform2(middlePoint, None)
-        mDstMajorAxisPoint = totalTransform.transform2(majorAxisPoint, None)
-        mDstMinorAxisPoint = totalTransform.transform2(minorAxisPoint, None)
-        dstCenter = totalTransform.transform2(originalCenter, None)
+        mDstMiddlePoint = totalTransform.transform(middlePoint, None)
+        mDstMajorAxisPoint = totalTransform.transform(majorAxisPoint, None)
+        mDstMinorAxisPoint = totalTransform.transform(minorAxisPoint, None)
+        dstCenter = totalTransform.transform(originalCenter, None)
         dstCenterX = dstCenter.getX()
         dstCenterY = dstCenter.getY()
         # Compute the relative 3 points:

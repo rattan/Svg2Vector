@@ -1,16 +1,16 @@
+import sys
+sys.path.append('../src')
 import unittest
 import xml.etree.ElementTree as ET
 
-import sys
-sys.path.append('../src')
+from OutputStreamWriter import OutputStreamWriter
 from Svg2Vector import Svg2Vector
-from StreamWriter import StreamWriter
 
 class SvgXmlCompare:
     @classmethod
     def testSvgXml(cls, name: str):
         with open(f'{name}.xml', 'r') as file:
-            w = StreamWriter()
+            w = OutputStreamWriter()
             Svg2Vector.parseSvgToXml(f'{name}.svg', w)
             # print(w.toString())
             # self.assertEqual(file.read(), w.toString())

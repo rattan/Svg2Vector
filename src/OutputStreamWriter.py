@@ -1,7 +1,7 @@
 
 # This is not original class.
-# fake java OutputStreamWriter for write result on original library.
-class StreamWriter:
+# fake java OutputOutputStreamWriter for write result on original library.
+class OutputStreamWriter:
     def __init__(self):
         self.buffer = ''
 

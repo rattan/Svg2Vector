@@ -1,11 +1,10 @@
-from Curve import Curve
-from Rectangle2D import Rectangle2DF
-
 from abc import *
-from typing import Self
-
 import math
 import sys
+from typing import Self
+
+from Curve import Curve
+from Rectangle2D import Rectangle2DF
 
 class Path2D(metaclass = ABCMeta):
     WIND_EVEN_ODD = 0

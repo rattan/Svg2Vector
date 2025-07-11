@@ -1,15 +1,14 @@
-from SvgNode import SvgNode
-from VdPath import VdPath
-from StreamWriter import StreamWriter
-from AffineTransform import AffineTransform
-from PathParser import PathParser
-from XmlUtils import XmlUtils
-from SvgGradientNode import SvgGradientNode
-
+import math
+import os
 from typing import Self
 
-import os
-import math
+from AffineTransform import AffineTransform
+from OutputStreamWriter import OutputStreamWriter
+from PathParser import PathParser
+from SvgGradientNode import SvgGradientNode
+from SvgNode import SvgNode
+from VdPath import VdPath
+from XmlUtils import XmlUtils
 
 # Represent a SVG file's leave element
 class SvgLeafNode(SvgNode):
@@ -31,7 +30,7 @@ class SvgLeafNode(SvgNode):
         self.mPathData = frm.mPathData
         
     # Writes attributes of this node
-    def writeAttributeValues(self, writer: StreamWriter, indent: str):
+    def writeAttributeValues(self, writer: OutputStreamWriter, indent: str):
         # There could be some redundent opacity information in the attribute's map,
         # like opacity vs fill-opacity / stroke-opacity.
         self.parsePathOpacity()
@@ -160,7 +159,7 @@ class SvgLeafNode(SvgNode):
                 except Exception as e:
                     pass
 
-    def writeXml(self, writer: StreamWriter, indent: str):
+    def writeXml(self, writer: OutputStreamWriter, indent: str):
         if not self.mPathData:
             return  # No path to draw
         
@@ -172,7 +171,7 @@ class SvgLeafNode(SvgNode):
         else:
             self.writePathElement(writer, indent)
         
-    def writePathElementWithSuppressedFillOrStroke(self, writer: StreamWriter, attribute: str, indent: str):
+    def writePathElementWithSuppressedFillOrStroke(self, writer: OutputStreamWriter, attribute: str, indent: str):
         savedValue = self.mVdAttributesMap.get(attribute)
         self.mVdAttributesMap[attribute] = '#00000000'
         self.writePathElement(writer, indent)
@@ -182,7 +181,7 @@ class SvgLeafNode(SvgNode):
             self.mVdAttributesMap[attribute] = savedValue
 
 
-    def writePathElement(self, writer: StreamWriter, indent: str):
+    def writePathElement(self, writer: OutputStreamWriter, indent: str):
         fillColor = self.mVdAttributesMap.get('fill')
         strokeColor = self.mVdAttributesMap.get('stroke')
         emptyFill = 'none' == fillColor or '#00000000' == fillColor

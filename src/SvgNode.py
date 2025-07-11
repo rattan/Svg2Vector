@@ -1,15 +1,14 @@
-from StreamWriter import StreamWriter
-from AffineTransform import AffineTransform
-from SvgColor import SvgColor
-
-import copy
-import re
-import math
-
 from abc import *
-from typing import Self
+import copy
 from enum import Enum
+import math
+import re
+from typing import Self
 from xml.dom import minidom
+
+from AffineTransform import AffineTransform
+from OutputStreamWriter import OutputStreamWriter
+from SvgColor import SvgColor
 
 # Parent class for a SVG file's node, can be either group or leave element.
 class SvgNode(metaclass=ABCMeta):
@@ -89,7 +88,7 @@ class SvgNode(metaclass=ABCMeta):
         if cls.MATRIX_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 6:
                 return None
-            parsedTransform.setTransform6(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5])
+            parsedTransform.settransform(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5])
         elif cls.TRANSLATE_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1 and numLength != 2:
                 return None
@@ -103,7 +102,7 @@ class SvgNode(metaclass=ABCMeta):
         elif cls.ROTATE_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1 and numLength != 3:
                 return None
-            parsedTransform.rotate(math.radians(numbers[0]), numbers[1] if numLength == 3 else 0, numbers[2] if numLength == 3 else 0)
+            parsedTransform.rotate(math.radians(numbers[0]), numbers[1] if numLength == 3 else 0.0, numbers[2] if numLength == 3 else 0.0)
         elif cls.SKEWX_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1:
                 return None
@@ -145,7 +144,7 @@ class SvgNode(metaclass=ABCMeta):
     # @param writer the writer to write the group XML element to
     # @param indent whitespace used for indenting output XML
     @abstractmethod
-    def writeXml(self, writer: StreamWriter, indent: str):
+    def writeXml(self, writer: OutputStreamWriter, indent: str):
         raise Exception()
 
     class VisitResult(Enum):

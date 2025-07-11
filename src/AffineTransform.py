@@ -1,9 +1,8 @@
-from Point2D import Point2DF, Point2D\
-
+import math
 from typing import Self
 import sys
 
-import math
+from Point2D import Point2DF, Point2D
 
 class AffineTransform:
     TYPE_UNKNOWN = -1
@@ -71,12 +70,23 @@ class AffineTransform:
                     self.state = self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE
                     self.type = self.TYPE_UNKNOWN
 
-    # Sets this transform to a copy of the transform in the specified
-    # {@code AffineTransform} object.
-    # @param Tx the {@code AffineTransform} object from which to
-    # copy the transform
-    # @since 1.2
-    def setTransform(self, Tx: Self):
+    def arg_type_matcher(self, args: list, types: list):
+        assert len(args) == len(types)
+        for i in range(len(args)):
+            if not isinstance(args[i], types[i]):
+                return False
+        return True
+
+    def setTransform(self, *args):
+        if len(args) == 1 and self.arg_type_matcher(args, [object]):
+            self.setTransform_A(args[0])
+        elif len(args) == 6 and self.arg_type_matcher(args, [float] * 6):
+            self.setTransform_ffffff(args[0], args[1], args[2], args[3], args[4], args[5])
+        else:
+            raise ValueError(f'setTransform args wrong {args}')
+
+    # https://github.com/openjdk/jdk/blob/76442f39b9dd583f09a7adebb0fc5f37b6ef88ef/src/java.desktop/share/classes/java/awt/geom/AffineTransform.java#L2193
+    def setTransform_A(self, Tx: Self):
         self.m00 = Tx.m00
         self.m10 = Tx.m10
         self.m01 = Tx.m01
@@ -86,7 +96,8 @@ class AffineTransform:
         self.state = Tx.state
         self.type = Tx.type
 
-    def setTransform6(self, m00: float, m10: float, m01: float, m11: float, m02: float, m12: float):
+    # https://github.com/openjdk/jdk/blob/76442f39b9dd583f09a7adebb0fc5f37b6ef88ef/src/java.desktop/share/classes/java/awt/geom/AffineTransform.java#L2216
+    def setTransform_ffffff(self, m00: float, m10: float, m01: float, m11: float, m02: float, m12: float):
         self.m00 = m00
         self.m10 = m10
         self.m01 = m01
@@ -94,29 +105,6 @@ class AffineTransform:
         self.m02 = m02
         self.m12 = m12
 
-
-    # Retrieves the flag bits describing the conversion properties of
-    # this transform.
-    # The return value is either one of the constants TYPE_IDENTITY
-    # or TYPE_GENERAL_TRANSFORM, or a combination of the
-    # appropriate flag bits.
-    # A valid combination of flag bits is an exclusive OR operation
-    # that can combine
-    # the TYPE_TRANSLATION flag bit
-    # in addition to either of the
-    # TYPE_UNIFORM_SCALE or TYPE_GENERAL_SCALE flag bits
-    # as well as either of the
-    # TYPE_QUADRANT_ROTATION or TYPE_GENERAL_ROTATION flag bits.
-    # @return the OR combination of any of the indicated flags that
-    # apply to this transform
-    # @see #TYPE_IDENTITY
-    # @see #TYPE_TRANSLATION
-    # @see #TYPE_UNIFORM_SCALE
-    # @see #TYPE_GENERAL_SCALE
-    # @see #TYPE_QUADRANT_ROTATION
-    # @see #TYPE_GENERAL_ROTATION
-    # @see #TYPE_GENERAL_TRANSFORM
-    # @since 1.2
     def getType(self):
         if self.type == self.TYPE_UNKNOWN:
             self.calculateType()
@@ -323,23 +311,17 @@ class AffineTransform:
         else:
             self.stateError()
 
-    # Transforms the specified {@code ptSrc} and stores the result
-    # in {@code ptDst}.
-    # If {@code ptDst} is {@code null}, a new {@link Point2D}
-    # object is allocated and then the result of the transformation is
-    # stored in this object.
-    # In either case, {@code ptDst}, which contains the
-    # transformed point, is returned for convenience.
-    # If {@code ptSrc} and {@code ptDst} are the same
-    # object, the input point is correctly overwritten with
-    # the transformed point.
-    # @param ptSrc the specified {@code Point2D} to be transformed
-    # @param ptDst the specified {@code Point2D} that stores the
-    # result of transforming {@code ptSrc}
-    # @return the {@code ptDst} after transforming
-    # {@code ptSrc} and storing the result in {@code ptDst}.
-    # @since 1.2
-    def transform2(self, ptSrc, ptDst):
+
+    def transform(self, *args):
+        if len(args) == 2 and self.arg_type_matcher(args, [Point2D, object]):
+            return self.transform_PP(args[0], args[1])
+        elif len(args) == 5 and self.arg_type_matcher(args, [list, int, list, int, int]):
+            self.transform_lilii(args[0], args[1], args[2], args[3], args[4])
+        else:
+            raise ValueError(f'transform args wrong {args}')
+
+    # https://github.com/openjdk/jdk/blob/76442f39b9dd583f09a7adebb0fc5f37b6ef88ef/src/java.desktop/share/classes/java/awt/geom/AffineTransform.java#L2899
+    def transform_PP(self, ptSrc: Point2D, ptDst: Point2D) -> Point2D:
         if ptDst is None:
             ptDst = Point2DF()
         
@@ -365,26 +347,8 @@ class AffineTransform:
             return None
         return ptDst
 
-    # Transforms an array of floating point coordinates by this transform.
-    # The two coordinate array sections can be exactly the same or
-    # can be overlapping sections of the same array without affecting the
-    # validity of the results.
-    # This method ensures that no source coordinates are overwritten by a
-    # previous operation before they can be transformed.
-    # The coordinates are stored in the arrays starting at the specified
-    # offset in the order {@code [x0, y0, x1, y1, ..., xn, yn]}.
-    # @param srcPts the array containing the source point coordinates.
-    # Each point is stored as a pair of x,&nbsp;y coordinates.
-    # @param srcOff the offset to the first point to be transformed
-    # in the source array
-    # @param dstPts the array into which the transformed point coordinates
-    # are returned.  Each point is stored as a pair of x,&nbsp;y
-    # coordinates.
-    # @param dstOff the offset to the location of the first
-    # transformed point that is stored in the destination array
-    # @param numPts the number of points to be transformed
-    # @since 1.2
-    def transform5(self, srcPts: list[float], srcOff: int, dstPts: list[float], dstOff: int, numPts: int):
+    # https://github.com/openjdk/jdk/blob/76442f39b9dd583f09a7adebb0fc5f37b6ef88ef/src/java.desktop/share/classes/java/awt/geom/AffineTransform.java#L3051
+    def transform_lilii(self, srcPts: list[float], srcOff: int, dstPts: list[float], dstOff: int, numPts: int):
         M00 = 0.0
         M01 = 0.0
         M02 = 0.0
@@ -392,16 +356,7 @@ class AffineTransform:
         M11 = 0.0
         M12 = 0.0
         if dstPts == srcPts and srcOff < dstOff and desOff < srcOff + numPts * 2:
-            # If the arrays overlap partially with the destination higher
-            # than the source and we transform the coordinates normally
-            # we would overwrite some of the later source coordinates
-            # with results of previous transformations.
-            # To get around this we use arraycopy to copy the points
-            # to their final destination with correct overwrite
-            # handling and then transform them in place in the new
-            # safer location.
             dstPts[dstOff:dstOff + numPts * 2] = srcPts[srcOff:srcOff + numPts * 2]
-            # srcPts = dstPts;         // They are known to be equal.
             srcOff = dstOff
         if self.state == self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE:
             M00 = self.m00
@@ -503,23 +458,6 @@ class AffineTransform:
         else:
             self.state_error()
 
-    # Sets this transform to the inverse of itself.
-    # The inverse transform Tx' of this transform Tx
-    # maps coordinates transformed by Tx back
-    # to their original coordinates.
-    # In other words, Tx'(Tx(p)) = p = Tx(Tx'(p)).
-    # <p>
-    # If this transform maps all coordinates onto a point or a line
-    # then it will not have an inverse, since coordinates that do
-    # not lie on the destination point or line will not have an inverse
-    # mapping.
-    # The {@code getDeterminant} method can be used to determine if this
-    # transform has no inverse, in which case an exception will be
-    # thrown if the {@code invert} method is called.
-    # @see #getDeterminant
-    # @throws NoninvertibleTransformException
-    # if the matrix cannot be inverted.
-    # @since 1.6
     def invert(self):
         M00 = 0.0
         M01 = 0.0
@@ -628,7 +566,16 @@ class AffineTransform:
             self.stateError()
             return
 
-    def deltaTransform(self, ptSrc: Point2D, ptDst: Point2D) -> Point2D:
+    def deltaTransform(self, *args):
+        if len(args) == 2 and self.arg_type_matcher(args, [Point2D, object]):
+            self.deltaTransform_PP(args[0], args[1])
+        elif len(args) == 5 and self.arg_type_matcher(args, [list, int, list, int, int]):
+            self.deltaTransform_lilii(args[0], args[1], args[2], args[3], args[4])
+        else:
+            raise ValueError(f'deltaTransform args wrong {args}')
+
+    # https://github.com/openjdk/jdk/blob/76442f39b9dd583f09a7adebb0fc5f37b6ef88ef/src/java.desktop/share/classes/java/awt/geom/AffineTransform.java#L3701
+    def deltaTransform_PP(self, ptSrc: Point2D, ptDst: Point2D) -> Point2D:
         if not ptDst:
             ptDst = Point2DF()
 
@@ -662,7 +609,8 @@ class AffineTransform:
         else:
             self.stateError()
 
-    def deltaTransform5(self, srcPts: list[float], srcOff: int, dstPts: list[float], dstOff: int, numPts: int):
+    # https://github.com/openjdk/jdk/blob/76442f39b9dd583f09a7adebb0fc5f37b6ef88ef/src/java.desktop/share/classes/java/awt/geom/AffineTransform.java#L3769
+    def deltaTransform_lilii(self, srcPts: list[float], srcOff: int, dstPts: list[float], dstOff: int, numPts: int):
         if dstPts is srcPts and dstOff > srcOff and dstOff < srcOff + numPts * 2:
             # Handle overlapping arrays by copying to a temporary location first
             dstPts[dstOff:dstOff + numPts * 2] = srcPts[srcOff : srcOff + numPts * 2]
@@ -727,25 +675,6 @@ class AffineTransform:
         else:
             self.stateError()
 
-    # Concatenates an {@code AffineTransform Tx} to
-    # this {@code AffineTransform} Cx in the most commonly useful
-    # way to provide a new user space
-    # that is mapped to the former user space by {@code Tx}.
-    # Cx is updated to perform the combined transformation.
-    # Transforming a point p by the updated transform Cx' is
-    # equivalent to first transforming p by {@code Tx} and then
-    # transforming the result by the original transform Cx like this:
-    # Cx'(p) = Cx(Tx(p))
-    # In matrix notation, if this transform Cx is
-    # represented by the matrix [this] and {@code Tx} is represented
-    # by the matrix [Tx] then this method does the following:
-    # <pre>
-    #          [this] = [this] x [Tx]
-    # </pre>
-    # @param Tx the {@code AffineTransform} object to be
-    # concatenated with this {@code AffineTransform} object.
-    # @see #preConcatenate
-    # @since 1.2
     def concatenate(self, Tx: Self):
         M0 = 0.0
         M1 = 0.0
@@ -978,28 +907,6 @@ class AffineTransform:
 
         self.udpateState()
 
-    # Concatenates an {@code AffineTransform Tx} to
-    # this {@code AffineTransform} Cx
-    # in a less commonly used way such that {@code Tx} modifies the
-    # coordinate transformation relative to the absolute pixel
-    # space rather than relative to the existing user space.
-    # Cx is updated to perform the combined transformation.
-    # Transforming a point p by the updated transform Cx' is
-    # equivalent to first transforming p by the original transform
-    # Cx and then transforming the result by
-    # {@code Tx} like this:
-    # Cx'(p) = Tx(Cx(p))
-    # In matrix notation, if this transform Cx
-    # is represented by the matrix [this] and {@code Tx} is
-    # represented by the matrix [Tx] then this method does the
-    # following:
-    # <pre>
-    #          [this] = [Tx] x [this]
-    # </pre>
-    # @param Tx the {@code AffineTransform} object to be
-    # concatenated with this {@code AffineTransform} object.
-    # @see #concatenate
-    # @since 1.2
     def preConcatenate(self, Tx: Self):
         M0 = 0.0
         M1 = 0.0
@@ -1293,19 +1200,6 @@ class AffineTransform:
             self.stateError()
         self.updateState()
 
-    # Concatenates this transform with a translation transformation.
-    # This is equivalent to calling concatenate(T), where T is an
-    # {@code AffineTransform} represented by the following matrix:
-    # <pre>
-    #          [   1    0    tx  ]
-    #          [   0    1    ty  ]
-    #          [   0    0    1   ]
-    # </pre>
-    # @param tx the distance by which coordinates are translated in the
-    # X axis direction
-    # @param ty the distance by which coordinates are translated in the
-    # Y axis direction
-    # @since 1.2
     def translate(self, tx: float, ty: float):
         current_state = self.state
         if current_state == self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE:
@@ -1412,7 +1306,16 @@ class AffineTransform:
         self.state = state
         self.type = TYPE_UNKNOWN
 
-    def rotate1(self, theta: float):
+    def rotate(self, *args):
+        if len(args) == 1 and self.arg_type_matcher(args, [float]):
+            self.rotate_f(args[0])
+        elif len(args) == 3 and self.arg_type_matcher(args, [float] * 3):
+            self.rotate_fff(args[0], args[1], args[2])
+        else:
+            raise ValueError(f'rotate args wrong {args}')
+
+    # https://github.com/openjdk/jdk/blob/76442f39b9dd583f09a7adebb0fc5f37b6ef88ef/src/java.desktop/share/classes/java/awt/geom/AffineTransform.java#L1429
+    def rotate_f(self, theta: float):
         sin = math.sin(theta)
         if sin == 1.0:
             self.rotate90()
@@ -1433,24 +1336,12 @@ class AffineTransform:
                 self.m11 = -sin * M0 + cos * M1
                 self.updateState()
 
-    def rotate(self, theta: float, anchorx: float, anchory: float):
+    # https://github.com/openjdk/jdk/blob/76442f39b9dd583f09a7adebb0fc5f37b6ef88ef/src/java.desktop/share/classes/java/awt/geom/AffineTransform.java#L1480
+    def rotate_fff(self, theta: float, anchorx: float, anchory: float):
         self.translate(anchorx, anchory)
-        self.rotate1(theta)
+        self.rotate(theta)
         self.translate(-anchorx, -anchory)
 
-    # Concatenates this transform with a scaling transformation.
-    # This is equivalent to calling concatenate(S), where S is an
-    # {@code AffineTransform} represented by the following matrix:
-    # <pre>
-    #          [   sx   0    0   ]
-    #          [   0    sy   0   ]
-    #          [   0    0    1   ]
-    # </pre>
-    # @param sx the factor by which coordinates are scaled along the
-    # X axis direction
-    # @param sy the factor by which coordinates are scaled along the
-    # Y axis direction
-    # @since 1.2
     def scale(self, sx: float, sy: float):
         current_state = self.state
         if current_state in {
@@ -1510,19 +1401,6 @@ class AffineTransform:
         else:
             self.stateError()
 
-    # Concatenates this transform with a shearing transformation.
-    # This is equivalent to calling concatenate(SH), where SH is an
-    # {@code AffineTransform} represented by the following matrix:
-    # <pre>
-    #          [   1   shx   0   ]
-    #          [  shy   1    0   ]
-    #          [   0    0    1   ]
-    # </pre>
-    # @param shx the multiplier by which coordinates are shifted in the
-    # direction of the positive X axis as a factor of their Y coordinate
-    # @param shy the multiplier by which coordinates are shifted in the
-    # direction of the positive Y axis as a factor of their X coordinate
-    # @since 1.2
     def shear(self, shx: float, shy: float):
         current_state = self.state
         if current_state in {
@@ -1572,11 +1450,6 @@ class AffineTransform:
             # If state_error raises an exception, this 'return' is unreachable.
             return
 
-    # Returns {@code true} if this {@code AffineTransform} is
-    # an identity transform.
-    # @return {@code true} if this {@code AffineTransform} is
-    # an identity transform; {@code false} otherwise.
-    # @since 1.2
     def isIdentity(self) -> bool:
         return self.state == self.APPLY_IDENTITY or (self.getType() == self.TYPE_IDENTITY)
 

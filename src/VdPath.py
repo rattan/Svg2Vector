@@ -1,9 +1,9 @@
-from VdElement import VdElement
+import math
+
 from AffineTransform import AffineTransform
 from EllipseSolver import EllipseSolver
 from Point2D import Point2DF
-
-import math
+from VdElement import VdElement
 
 # Used to represent one VectorDrawable's path element.
 class VdPath(VdElement):
@@ -127,11 +127,11 @@ class VdPath(VdElement):
                 currentSegmentStartY = self.mParams[1]
                 currentX = self.mParams[paramsLen - 2]
                 currentY = self.mParams[paramsLen - 1]
-                totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
+                totalTransform.transform(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
             elif self.mType in ['L', 'T', 'C', 'S', 'Q']:
                 currentX = self.mParams[paramsLen - 2]
                 currentY = self.mParams[paramsLen - 1]
-                totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
+                totalTransform.transform(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
             elif self.mType == 'm':
                 if previousType == 'z' or previousType == 'Z':
                     # Replace 'm' with 'M' to work around a bug in API 21 that is triggered
@@ -146,7 +146,7 @@ class VdPath(VdElement):
                         self.mParams[i + 1] += self.mParams[i + 1 - step]
                     currentX = self.mParams[paramsLen - 2]
                     currentY = self.mParams[paramsLen - 1]
-                    totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
+                    totalTransform.transform(self.mParams, 0, self.mParams, 0, int(paramsLen / 2))
                 else:
                     headLen = 2
                     currentX += self.mParams[0]
@@ -156,7 +156,7 @@ class VdPath(VdElement):
                     if previousType == VdPath.INIT_TYPE:
                         # 'm' at the start of a path is handled similar to 'M'.
                         # The coordinates are transformed as absolute.
-                        totalTransform.transform5(self.mParams, 0, self.mParams, 0, int(headLen / 2))
+                        totalTransform.transform(self.mParams, 0, self.mParams, 0, int(headLen / 2))
                     elif not self.isTranslationOnly(totalTransform):
                         self.deltaTransform(totalTransform, self.mParams, 0, headLen)
                     for i in range(headLen, paramsLen, step):
@@ -176,7 +176,7 @@ class VdPath(VdElement):
                     tempParams[i * 2] = self.mParams[i]
                     tempParams[i * 2 + 1] = currentY
                     currentX = self.mParams[i]
-                totalTransform.transform5(tempParams, 0, tempParams, 0, paramsLen)
+                totalTransform.transform(tempParams, 0, tempParams, 0, paramsLen)
                 self.mParams = tempParams
             elif self.mType == 'V':
                 self.mType = 'L'
@@ -184,7 +184,7 @@ class VdPath(VdElement):
                     tempParams[i * 2] = currentX
                     tempParams[i * 2 + 1] = self.mParams[i]
                     currentY = self.mParams[i]
-                totalTransform.transform5(tempParams, 0, tempParams, 0, paramsLen)
+                totalTransform.transform(tempParams, 0, tempParams, 0, paramsLen)
                 self.mParams = tempParams
             elif self.mType == 'h':
                 for i in range(paramsLen):
@@ -220,7 +220,7 @@ class VdPath(VdElement):
                     # [5, 6]
                     currentX = self.mParams[i + 5]
                     currentY = self.mParams[i + 6]
-                    totalTransform.transform5(self.mParams, i + 5, self.mParams, i + 5, 1)
+                    totalTransform.transform(self.mParams, i + 5, self.mParams, i + 5, 1)
             elif self.mType == 'a':
                 for i in range(0, paramsLen - step + 1, step):
                     oldCurrentX = currentX
@@ -259,7 +259,7 @@ class VdPath(VdElement):
             doubleArray = [0.0] * paramsLen
             for i in range(paramsLen):
                 doubleArray[i] = coordinates[i + offset]
-            totalTransform.deltaTransform5(doubleArray, 0, doubleArray, 0, int(paramsLen / 2))
+            totalTransform.deltaTransform(doubleArray, 0, doubleArray, 0, int(paramsLen / 2))
             for i in range(paramsLen):
                 coordinates[i + offset] = doubleArray[i]
 

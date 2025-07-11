@@ -15,17 +15,17 @@ limitations under the License.
 """
 
 from collections import deque
-from xml.dom import minidom
 import re
+from xml.dom import minidom
 
-from SvgTree import SvgTree
-from SvgNode import SvgNode
-from SvgGroupNode import SvgGroupNode
-from SvgGradientNode import SvgGradientNode
-from SvgLeafNode import SvgLeafNode
+from OutputStreamWriter import OutputStreamWriter
 from PathBuilder import PathBuilder
-from StreamWriter import StreamWriter
 from SvgClipPathNode import SvgClipPathNode
+from SvgGradientNode import SvgGradientNode
+from SvgGroupNode import SvgGroupNode
+from SvgLeafNode import SvgLeafNode
+from SvgNode import SvgNode
+from SvgTree import SvgTree
 
 # Converts SVG to VectorDrawable's XML
 class Svg2Vector:
@@ -950,8 +950,8 @@ class Svg2Vector:
     # def getSizeString(cls. w, h, scaleFactor):
     #     return f'        android:width="{int(w * scaleFactor)}dp"\n        android:height="{int(h * scaleFactor)}dp"\n'
     @classmethod
-    def writeFile(cls, streamWriter: StreamWriter, svgTree: SvgTree):
-        svgTree.writeXml(streamWriter)
+    def writeFile(cls, OutputStreamWriter: OutputStreamWriter, svgTree: SvgTree):
+        svgTree.writeXml(OutputStreamWriter)
 
     # Converts an SVG file into VectorDrawable's XML content, if no error is found.
     # @param inputSvg the input SVG file
@@ -960,8 +960,8 @@ class Svg2Vector:
     # @return the error message that combines all logged errors and warnings, or an empty string if
     #     there were no errors
     @classmethod
-    def parseSvgToXml(cls, inputSVG: str, streamWriter: StreamWriter) -> str:
+    def parseSvgToXml(cls, inputSVG: str, OutputStreamWriter: OutputStreamWriter) -> str:
         svgTree = cls.parse(inputSVG)
         if svgTree.getHasLeafNode():
-            cls.writeFile(streamWriter, svgTree)
+            cls.writeFile(OutputStreamWriter, svgTree)
         return svgTree.getErrorMessage()

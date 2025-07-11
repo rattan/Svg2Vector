@@ -1,7 +1,7 @@
+import math
+
 from Path2D import Path2D
 from VdPath import VdPath
-
-import math
 
 class VdNodeRender:
     @classmethod

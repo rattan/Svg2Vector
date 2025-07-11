@@ -1,13 +1,12 @@
-from SvgGroupNode import SvgGroupNode
-from AffineTransform import AffineTransform
-from SvgNode import SvgNode
-from StreamWriter import StreamWriter
-from SvgLeafNode import SvgLeafNode
-
-from xml.dom import minidom
-from typing import Self
-
 import os
+from typing import Self
+from xml.dom import minidom
+
+from OutputStreamWriter import OutputStreamWriter
+from AffineTransform import AffineTransform
+from SvgGroupNode import SvgGroupNode
+from SvgLeafNode import SvgLeafNode
+from SvgNode import SvgNode
 
 # Represents a SVG group element that contains a clip-path. SvgClipPathNode's mChildren will
 # contain the actual path data of the clip-path. The path of the clip will be constructed in
@@ -80,7 +79,7 @@ class SvgClipPathNode(SvgGroupNode):
         for p in self.mAffectedNodes:
             p.transformIfNeeded(rootTransform)
    
-    def writeXml(self, writer: StreamWriter, indent: str):
+    def writeXml(self, writer: OutputStreamWriter, indent: str):
         writer.write(indent)
         writer.write('<group>')
         writer.write(os.linesep)
