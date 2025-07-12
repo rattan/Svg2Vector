@@ -15,12 +15,11 @@
       android:strokeWidth="4.68"/>
   <path
       android:pathData="M148.75,386.75m-106.25,0a106.25,106.25 0,1 1,212.5 0a106.25,106.25 0,1 1,-212.5 0"
+      android:strokeWidth="37.4"
       android:fillColor="#ED5EAB"
-      android:strokeColor="#CF1779"
-      android:strokeWidth="37.4"/>
+      android:strokeColor="#CF1779"/>
   <path
       android:pathData="M425,267.75m-63.75,0a63.75,63.75 0,1 1,127.5 0a63.75,63.75 0,1 1,-127.5 0"
-      
       android:fillColor="#ED5EAB"
       android:strokeColor="#CF1779"
       android:strokeWidth="4.68"/>

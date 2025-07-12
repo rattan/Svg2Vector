@@ -1,3 +1,4 @@
+import logging
 from typing import Self
 from xml.dom import minidom
 
@@ -79,7 +80,7 @@ class SvgGroupNode(SvgNode):
 
     def dumpNode(self, indent):
         # Print the current group.
-        #print(f'{indent}current group: {self.getName()}')
+        logging.info(f'{indent} group: {self.getName()}')
 
         # Then print all the children
         for node in self.mChildren:

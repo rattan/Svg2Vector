@@ -1,4 +1,5 @@
 from enum import Enum
+import logging
 import os
 from typing import Self
 from xml.dom import minidom
@@ -90,7 +91,7 @@ class SvgGradientNode(SvgNode):
     
     def dumpNode(self, indent: str):
         # Print the current node.
-        # print(f'{indent} current gradient is :{self.getName()}')
+        logging.info(f'{indent} current gradient is :{self.getName()}')
         pass
     
     def transformIfNeeded(self, rootTransform: AffineTransform):
@@ -134,13 +135,13 @@ class SvgGradientNode(SvgNode):
                 val = float(vdValue)
 
         except Exception as e:
-            # print('Unsupported coordinate value')
+            self.logError('Unsupported coordinate value')
             pass
         return self.GradientCoordResult(val, isPercentage)
 
     def writeXml(self, writer: OutputStreamWriter, indent: str):
         if not self.mGradientStops:
-            # print('Gradient has no stop info')
+            self.logError("Gradient has no stop info")
             return
 
         # By default, the dimensions of the gradient is the bounding box of the path.
@@ -286,7 +287,7 @@ class SvgGradientNode(SvgNode):
                     elif svgValue == 'repeat':
                         vdValue = 'repeat'
                     else:
-                        # print(f'Unsupported spreadMethod {svgValue}')
+                        self.logError(f'Unsupported spreadMethod {svgValue}')
                         vdValue = 'clamp'
                     
                 elif svgValue.endswith("%"):
@@ -322,7 +323,7 @@ class SvgGradientNode(SvgNode):
             try:
                 opacity = float(g.getOpacity())
             except Exception as e:
-                # print('Unsupported opacity value')
+                self.logWarning('Unsupported opacity value')
                 opacity = 1.0
             
             color1 = VdPath.applyAlpha(VdUtil.parseColorValue(color), opacity)
@@ -336,12 +337,12 @@ class SvgGradientNode(SvgNode):
             writer.write('"/>')
             writer.write(os.linesep)
             if len(self.mGradientStops) == 1:
-                logWarning("Gradient has only one color stop")
+                self.logWarning('Gradient has only one color stop')
                 writer.write(indent)
-                writer.write("<item android:offset=\"1\"")
-                writer.write(" android:color=\"")
+                writer.write('<item android:offset="1"')
+                writer.write(' android:color="')
                 writer.write(color)
-                writer.write("\"/>")
+                writer.write('"/>')
                 writer.write(os.linesep)
     
     def addGradientStop(self, color: str, offset: str, opacity: str):

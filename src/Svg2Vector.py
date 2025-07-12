@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from collections import deque
+import logging
 import re
 from xml.dom import minidom
 
@@ -564,16 +565,16 @@ class Svg2Vector:
 
         while parentNode and parentNode.nodeName == 'g':
             # Parse the group's attributes.
-            #print('Printing current patent')
+            logging.info('Printing current patent')
             cls.printlnCommon(parentNode)
 
             nodeAttr = parentNode.getAttribute(cls.SVG_STYLE)
             # Search for the "display:none", if existed, then skip this item
             if nodeAttr:
                 styleContent += f'{nodeAttr.value};'
-                #print(f'styleContent is :{styleContent} at number group')
+                logging.info(f'styleContent is :{styleContent} at number group')
                 if 'display:none' in styleContent:
-                    #print('Found none style, skip the whole group')
+                    logging.info('Found none style, skip the whole group')
                     nothingToDisplay = True
                     break
                 else:
@@ -581,7 +582,7 @@ class Svg2Vector:
             
             displayAttr = parentNode.getAttribute(cls.SVG_DISPLAY)
             if displayAttr and 'none' == displayAttr.ndoeValue:
-                #print('Found display:none style, skip the whole group')
+                logging.info('Found display:none style, skip the whole group')
                 nothingToDisplay = True
                 break
             parentNode = parentNode.parentNode
@@ -590,7 +591,7 @@ class Svg2Vector:
             # Skip this current whole item.
             return
         
-        #print('Print current item')
+        logging.info('Print current item')
         cls.printlnCommon(currentItem)
 
         if hasNodeAttr and styleContent:
@@ -621,40 +622,40 @@ class Svg2Vector:
 
     @classmethod
     def printlnCommon(cls, n: minidom.Node):
-        #print(f'nodeName="{n.nodeName}"')
+        logging.info(f'nodeName="{n.nodeName}"')
 
         val = n.namespaceURI
         if val:
-            #print(f'uri="{val}"')
+            logging.info(f'uri="{val}"')
             pass
 
         val = n.prefix
 
         if val:
-            #print(f'pre="{val}"')
+            logging.info(f'pre="{val}"')
             pass
 
         val = n.localName
         if val:
-            #print(f'local="{val}"')
+            logging.info(f'local="{val}"')
             pass
 
         val = n.nodeValue
         if val:
-            #print('nodeValue=')
+            logging.info('nodeValue=')
             if val.strip() == '':
                 # Whitespace
-                #print('[WS]')
+                logging.info('[WS]')
                 pass
             else:
-                #print(f'"{n.ndoeVlaue}"')
+                logging.info(f'"{n.ndoeVlaue}"')
                 pass
 
 
     # Convert polygon element into a path.
     @classmethod
     def extractPolyItem(cls, svgTree: SvgTree, child: SvgLeafNode, currentGroupNode: minidom.Node, currentGroup: SvgGroupNode):
-        #print(f'Rect found{currentGroupNode.getTextContent()}')
+        logging.info(f'Polyline or Polygon found{currentGroupNode}')
         if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
             attributes = currentGroupNode.attributes
             for itemIndex in range(attributes.length):
@@ -693,7 +694,7 @@ class Svg2Vector:
     # Convert rectangle element into a path
     @classmethod
     def extractRectItem(cls, svg: SvgTree, child: SvgLeafNode, currentGroupNode: minidom.Node, currentGroup: SvgGroupNode):
-        #print(f'Rect found{currentGroupNode.getTextContent()}')
+        logging.info(f'Rect found{currentGroupNode}')
 
         if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
             x = 0.0
@@ -772,7 +773,7 @@ class Svg2Vector:
     # Convert circle element into a path.
     @classmethod
     def extractCircleItem(cls, svg: SvgTree, child: SvgLeafNode, currentGroupNode: minidom.Node, currentGroup: SvgGroupNode):
-        #print(f'circle found{currentGroupNode.textContent}')
+        logging.info(f'circle found{currentGroupNode}')
         if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
             cx = 0
             cy = 0
@@ -814,7 +815,7 @@ class Svg2Vector:
     # Convert ellipse element into a path
     @classmethod
     def extractEllipseItem(cls, svg: SvgTree, child: SvgLeafNode, currentGroupNode: minidom.Node, currentGroup: SvgGroupNode):
-        # print(f'ellipse found{currentGroupNode.textContent}')
+        logging.info(f'ellipse found{currentGroupNode}')
 
         if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
             cx = 0.0
@@ -860,7 +861,7 @@ class Svg2Vector:
     # Convert line element into a path
     @classmethod
     def extractLineItem(cls, svg: SvgTree, child: SvgLeafNode, currentGroupNode: minidom.Node, currentGroup: SvgGroupNode):
-        # print(f'line found{currentGroupNode.textContent}')
+        logging.info(f'line found{currentGroupNode}')
 
         if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
             x1 = 0.0
@@ -903,7 +904,7 @@ class Svg2Vector:
 
     @classmethod
     def extractPathItem(cls, svg: SvgTree, child: SvgLeafNode, currentGroupNode: minidom.Node, currentGroup: SvgGroupNode):
-        #print(f'Path found{currentGroupNode.textContent}')
+        logging.info(f'Path found{currentGroupNode}')
 
         if currentGroupNode.nodeType == minidom.Node.ELEMENT_NODE:
             a = currentGroupNode.attributes
@@ -926,7 +927,7 @@ class Svg2Vector:
 
     @classmethod
     def addStyleToPath(cls, path: SvgNode, value: str):
-        # print(f'Style found is{value}')
+        logging.info(f'Style found is{value}')
         if value:
             for subStyle in reversed(value.split(';')):
                 nameValue = subStyle.split(':')

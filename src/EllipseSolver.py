@@ -1,3 +1,4 @@
+import logging
 import math
 
 from AffineTransform import AffineTransform
@@ -58,7 +59,7 @@ class EllipseSolver:
         self.mDirectionChanged = self.computeDirectionChange(middlePoint, majorAxisPoint, minorAxisPoint, mDstMiddlePoint, mDstMajorAxisPoint, mDstMinorAxisPoint)
         # From 3 dest points, recompute the a, b and theta.
         if self.computeABThetaFromControlPoints(relativeDstMiddleX, relativeDstMiddleY, relativeDstMajorAxisPointX, relativeDstMajorAxisPointY, relativeDstMinorAxisPointX, relativeDstMinorAxisPointY):
-            # print('Early return in the ellipse transformation computation!')
+            logging.warning('Early return in the ellipse transformation computation!')
             pass
 
     # After a random transformation, the controls points may change its direction, left handed <->

@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 from typing import Self
@@ -110,7 +111,7 @@ class SvgLeafNode(SvgNode):
             self.mVdAttributesMap[attributeName] = attributeValue
     
     def dumpNode(self, indent: str):
-        #print(f'indent{' null pathData' if self.mPathData is None else self.mPathData}{' null name' if self.mName is None else self.mName}')
+        logging.info(f'indent{' None pathData' if self.mPathData is None else self.mPathData}{' null name' if self.mName is None else self.mName}')
         pass
 
     def setPathData(self, pathData: str):
@@ -154,7 +155,7 @@ class SvgLeafNode(SvgNode):
                         width *= math.sqrt(abs(determinant))
                         self.mVdAttributesMap['stroke-width'] = self.mSvgTree.formatCoordinate(width)
                     if (self.mStackedTransform.getType() & AffineTransform.TYPE_GENERAL_SCALE) != 0:
-                        # print('Scaling of the stroke width is approximate')
+                        self.logWarning('Scaling of the stroke width is apporoximate')
                         pass
                 except Exception as e:
                     pass
@@ -192,13 +193,13 @@ class SvgLeafNode(SvgNode):
         writer.write('<path')
         writer.write(os.linesep)
         if not fillColor and not self.mFillGradientNode:
-            # print('Adding default fill color')
+            logging.info('Adding default fill color')
             writer.write(indent)
             writer.write(self.CONTINUATION_INDENT)
             writer.write('android:fillColor="#FF000000"')
             writer.write(os.linesep)
         if not emptyStroke and 'stroke-width' not in self.mVdAttributesMap and not self.mStrokeGradientNode:
-            # print('Adding default stroke width')
+            logging.info('Adding default stroke width')
             writer.write(indent)
             writer.write(self.CONTINUATION_INDENT)
             writer.write('android:strokeWidth="1"')

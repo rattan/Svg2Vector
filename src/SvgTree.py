@@ -1,5 +1,6 @@
 
 from enum import Enum
+import logging
 import os
 import struct
 from typing import Self
@@ -130,13 +131,13 @@ class SvgTree:
         # mRootTransform is always setup, now just need to apply th viewbox info into.
         self.mRootTransform.preConcatenate(AffineTransform(1, 0, 0, 1, -self.viewBox[0], -self.viewBox[1]))
         self.transform(self.mRootTransform)
-        # print(f'matrix={self.mRootTransform}')
+        logging.info(f'matrix={self.mRootTransform}')
 
     def transform(self, rootTransform: AffineTransform):
         self.mRoot.transformIfNeeded(rootTransform)
 
     def dump(self):
-        # print(f'file {self.mFileName}')
+        logging.info(f'file {self.mFileName}')
         self.mRoot.dumpNode('')
 
     def setRoot(self, root: SvgGroupNode):
@@ -152,10 +153,10 @@ class SvgTree:
         self.logErrorLine(s, node, self.SvgLogLevel.WARNING)
 
     def logErrorLine(self, s: str, node: minidom.Node, level: SvgLogLevel):
-        # temporary print log before implments logging system.
-        print(s)
-        # line = self.getStartLine(node) if node else 0
-        # self.mLogMessage(LogMessage(level, line, s))
+        if not s:
+            ValueError(f's must not be empty')
+        line = self.getStartLine(node) if node else 0
+        self.mLogMessage(LogMessage(level, line, s))
 
     # Returns the error message that combines all logged errors and warnings. If there were no
     # errors, returns an empty string.
@@ -180,7 +181,10 @@ class SvgTree:
     # Returns the 1-based start line number of the given node.
     @classmethod
     def getStartLine(cls, node):
-        return cls.getPosition(node).getStartLine() + 1
+        # xml.dom.minidom doesn’t have start line number information on node.
+        # TODO: inherits xml.dom.minidom can find node line or find other method to finde line.
+        return 0
+        # return PositionXmlParser.getPosition(node).getStartLine() + 1
 
     def getViewportWidth(self) -> float:
         return self.viewBox[2] if self.viewBox else -1.0
@@ -314,7 +318,7 @@ class SvgTree:
 
     # Formats and returns the given coordinate with an appropriate precision. */
     def formatCoordinate(self, coordinate: float) -> str:
-        struct.unpack('f', struct.pack('f', coordinate))[0]
+        coordinate = struct.unpack('f', struct.pack('f', coordinate))[0]
         return XmlUtils.trimInsignificantZeros(self.getCoordinateFormat().format(coordinate))
 
     # Returns a {@link NumberFormat] of sufficient precision to use for formatting coordinate

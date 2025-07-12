@@ -1,6 +1,7 @@
 from abc import *
 import copy
 from enum import Enum
+import logging
 import math
 import re
 from typing import Self
@@ -65,7 +66,7 @@ class SvgNode(metaclass=ABCMeta):
                 self.fillPresentationAttributesInternal(nodeName, nodeValue)
             
             if self.TRANSFORM_TAG == nodeName:
-                print(f'{nodeName} {nodeValue}')
+                logging.info(f'{nodeName} {nodeValue}')
                 self.parseLocalTransform(nodeValue)
 
     def parseLocalTransform(self, nodeValue: str):
@@ -192,10 +193,10 @@ class SvgNode(metaclass=ABCMeta):
         elif name == 'stroke-width':
             if value == '0':
                 del self.mVdAttributesMap['stroke']
-        # print(f'>>>> PROP {name} = {value}')
+        logging .info(f'>>>> PROP {name} = {value}')
         if value.startswith('url('):
             if name != 'fill' and name != 'stroke':
-                print('Unsupported URL value: {value}')
+                self.logError(f'Unsupported URL value: {value}')
                 return
         if value:
             self.mVdAttributesMap[name] = value
@@ -248,7 +249,7 @@ class SvgNode(metaclass=ABCMeta):
         try:
             return SvgColor.colorSvg2Vd(svgColor)
         except Exception as e:
-            print(f'Unsupported color format "{svgColor}"')
+            self.logError(f'Unsupported color format "{svgColor}"')
             return errorFallbackColor
 
     # Returns the id referenced by 'href' or 'xlink.href' attribute, or an empty string if neither

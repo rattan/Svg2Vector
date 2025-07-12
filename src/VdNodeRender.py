@@ -1,3 +1,4 @@
+import logging
 import math
 
 from Path2D import Path2D
@@ -162,7 +163,7 @@ class VdNodeRender:
 
     @classmethod
     def drawArc(cls, p: Path2D, x0: float, y0: float, x1: float, y1: float, a: float, b: float, theta: float, isMoreThanHalf: bool, isPositiveArc: bool):
-        # print(f'({x0},{y0})-({x1},{y1}) {{{a} {b}}}')
+        logging.info(f'({x0},{y0})-({x1},{y1}) {{{a} {b}}}')
         thetaD = theta * math.pi / 180.0
         cosTheta = math.cos(thetaD)
         sinTheta = math.sin(thetaD)
@@ -170,7 +171,7 @@ class VdNodeRender:
         y0p = (-x0 * sinTheta + y0 * cosTheta) / b
         x1p = (x1 * cosTheta + y1 * sinTheta) / a
         y1p = (-x1 * sinTheta + y1 * cosTheta) / b
-        # print(f'unit space ({x0p},{y0p})-({x1p},{y1p})')
+        logging.info(f'unit space ({x0p},{y0p})-({x1p},{y1p})')
 
         dx = x0p - x1p
         dy = y0p - y1p
@@ -179,12 +180,12 @@ class VdNodeRender:
 
         dsq = dx * dx + dy * dy
         if dsq == 0.0:
-            # print(' Points are coincident')
+            logging.info(' Points are coincident')
             return
 
         disc = 1.0 / dsq - 1.0 / 4.0
         if disc < 0.0:
-            # print(f'Points are too far apart {dsq}')
+            logging.info(f'Points are too far apart {dsq}')
             adjust = math.sqrt(dsq) / 1.99999
             cls.drawArc(p, x0, y0, x1, y1, a * adjust, b * adjust, theta, isMoreThanHalf, isPositiveArc)
             return
@@ -201,9 +202,9 @@ class VdNodeRender:
             cy = ym - sdx
 
         eta0 = math.atan2(y0p - cy, x0p - cx)
-        # print(f'eta0 = Math.atan2({y0p - cy}, {x0p - cx}) = {math.degrees(eta0)}')
+        logging.info(f'eta0 = Math.atan2({y0p - cy}, {x0p - cx}) = {math.degrees(eta0)}')
         eta1 = math.atan2(y1p - cy, x1p - cx)
-        # print(f'eta1 = Math.atan2({y1p - cy}, {x1p - cx}) = {math.degrees(eta1)}')
+        logging.info(f'eta1 = Math.atan2({y1p - cy}, {x1p - cx}) = {math.degrees(eta1)}')
 
         sweep = eta1 - eta0
         if isPositiveArc != (sweep >= 0):
@@ -217,7 +218,7 @@ class VdNodeRender:
         tcx = cx
         cx = cx * cosTheta - cy * sinTheta
         cy = tcx * sinTheta + cy * cosTheta
-        # print(f'cx = {cx}, cy = {cy}, a = {a}, b = {b}, x0 = {x0}, y0 = {y0}, thetaD = {math.degrees(thetaD)}, eta0 = {math.degrees(eta0)}, sweep = {math.degrees(sweep)}')
+        logging.info(f'cx = {cx}, cy = {cy}, a = {a}, b = {b}, x0 = {x0}, y0 = {y0}, thetaD = {math.degrees(thetaD)}, eta0 = {math.degrees(eta0)}, sweep = {math.degrees(sweep)}')
         cls.arcToBezier(p, cx, cy, a, b, x0, y0, thetaD, eta0, sweep)
 
     @classmethod
