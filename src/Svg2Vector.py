@@ -164,7 +164,6 @@ class Svg2Vector:
         'view'
         ]
     SPACE_OR_COMMA = r'[\s,]+'
-    logging.basicConfig(filename = 'Svg2Vector.log', level = logging.INFO)
 
     @classmethod
     def parse(cls, path: str) -> SvgTree:

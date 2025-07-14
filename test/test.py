@@ -12,6 +12,7 @@ class SvgXmlCompare:
         with open(f'{name}.xml', 'r') as file:
             w = OutputStreamWriter()
             Svg2Vector.parseSvgToXml(f'{name}.svg', w)
+            testCase.assertMultiLineEqual(file.read(), w.toString())
 
 class Svg2VectorTest(unittest.TestCase):
     def testCircle(self):

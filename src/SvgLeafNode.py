@@ -36,7 +36,7 @@ class SvgLeafNode(SvgNode):
         # like opacity vs fill-opacity / stroke-opacity.
         self.parsePathOpacity()
 
-        for name, svgValue in self.mVdAttributesMap.items():
+        for name, svgValue in self.toHashMapEntryOrder(self.mVdAttributesMap.items()):
             attribute = self.presentationMap.get(name)
             if not attribute:
                 continue
@@ -180,7 +180,6 @@ class SvgLeafNode(SvgNode):
             self.mVdAttributesMap.pop(attribute, None)
         else:
             self.mVdAttributesMap[attribute] = savedValue
-
 
     def writePathElement(self, writer: OutputStreamWriter, indent: str):
         fillColor = self.mVdAttributesMap.get('fill')

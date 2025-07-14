@@ -269,3 +269,20 @@ class SvgNode(metaclass=ABCMeta):
     class ClipRule(Enum):
         NON_ZERO = 1
         EVEN_ODD = 2
+
+    # https://github.com/openjdk/jdk/blob/99c299f0985c8be63b9b60e589db520d83fd8033/src/java.base/share/classes/java/util/HashMap.java#L336
+    # Java HashMap entry set iterate through ((hashCode ^ (hashCode >>> 16)) & bucketSize) order.
+    # If hash code collision, second priority, iterate through inserted order.
+    # This function make the line order of the result the same as the original code.
+    @classmethod
+    def toHashMapEntryOrder(cls, items: list) -> list:
+        def hashCode(value: str):
+            res = 0
+            for c in value:
+                res += res * 31 + ord(c)
+                res &= 0xFFFFFFFF
+            return res ^ (res >> 16)
+        bucket = 16
+        while bucket < len(items):
+            bucket *= 2
+        return [a[1] for a in sorted(list(enumerate(items)), key = lambda it: (hashCode(it[1][0]) & bucket) * bucket + it[0])]

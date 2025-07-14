@@ -8,8 +8,8 @@
         android:pathData="M200,200m-200,0a200,200 0,1 1,400 0a200,200 0,1 1,-400 0M600,200m-100,0a100,100 0,1 1,200 0a100,100 0,1 1,-200 0M600,600m-150,0a150,150 0,1 1,300 0a150,150 0,1 1,-300 0M200,600m-120,0a120,120 0,1 1,240 0a120,120 0,1 1,-240 0"/>
     <path
         android:pathData="M195,197h477v455h-477z"
+        android:strokeWidth="11"
         android:fillColor="#FF4DC2"
-        android:strokeColor="#B30077"
-        android:strokeWidth="11"/>
+        android:strokeColor="#B30077"/>
   </group>
 </vector>
