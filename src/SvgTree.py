@@ -75,13 +75,13 @@ class SvgTree:
             self.message = message
         
         def getFormattedMessage(self) -> str:
-            line = f'@ line{self.line}' if self.line else ''
-            return f'{self.level.name()}{line}: {message}'
+            line = f' @ line{self.line}' if self.line else ''
+            return f'{self.level.name}{line}: {self.message}'
 
         def __lt__(self, other: Self) -> bool:
-            if self.level < other.level:
+            if self.level.value < other.level.value:
                 return True
-            if self.level > other.level:
+            if self.level.value > other.level.value:
                 return False
             if self.line < other.line:
                 return True
@@ -156,14 +156,14 @@ class SvgTree:
         if not s:
             ValueError(f's must not be empty')
         line = self.getStartLine(node) if node else 0
-        self.mLogMessage(LogMessage(level, line, s))
+        self.mLogMessages.append(LogMessage(level, line, s))
 
     # Returns the error message that combines all logged errors and warnings. If there were no
     # errors, returns an empty string.
     def getErrorMessage(self) -> str:
         if not self.mLogMessages:
             return ''
-        self.mLogMessage.sort() # Sort by severity and line number.
+        self.mLogMessages.sort() # Sort by severity and line number.
         result = ''
         for message in self.mLogMessages:
             if result:
@@ -318,7 +318,9 @@ class SvgTree:
 
     # Formats and returns the given coordinate with an appropriate precision. */
     def formatCoordinate(self, coordinate: float) -> str:
+        fm = self.getCoordinateFormat()
         coordinate = struct.unpack('f', struct.pack('f', coordinate))[0]
+        coordinate = round(coordinate + 10 ** (-len(str(coordinate)) - 1), int(fm[3:4]))
         return XmlUtils.trimInsignificantZeros(self.getCoordinateFormat().format(coordinate))
 
     # Returns a {@link NumberFormat] of sufficient precision to use for formatting coordinate

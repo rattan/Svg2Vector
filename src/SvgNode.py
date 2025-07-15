@@ -279,10 +279,10 @@ class SvgNode(metaclass=ABCMeta):
         def hashCode(value: str):
             res = 0
             for c in value:
-                res += res * 31 + ord(c)
+                res = res * 31 + ord(c)
                 res &= 0xFFFFFFFF
             return res ^ (res >> 16)
         bucket = 16
         while bucket < len(items):
             bucket *= 2
-        return [a[1] for a in sorted(list(enumerate(items)), key = lambda it: (hashCode(it[1][0]) & bucket) * bucket + it[0])]
+        return [a[1] for a in sorted(list(enumerate(items)), key = lambda it: (hashCode(it[1][0]) & (bucket - 1)) * bucket + it[0])]
