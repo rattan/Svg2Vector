@@ -5,6 +5,8 @@ from AffineTransform import AffineTransform
 from Point2D import Point2DF, Point2D
 
 class EllipseSolver:
+    logger = logging.getLogger('Svg2Vector')
+
     # Constructs the solver with all necessary parameters, and all the output values will
     # be ready after this constructor is called.
     # <p>
@@ -59,7 +61,7 @@ class EllipseSolver:
         self.mDirectionChanged = self.computeDirectionChange(middlePoint, majorAxisPoint, minorAxisPoint, mDstMiddlePoint, mDstMajorAxisPoint, mDstMinorAxisPoint)
         # From 3 dest points, recompute the a, b and theta.
         if self.computeABThetaFromControlPoints(relativeDstMiddleX, relativeDstMiddleY, relativeDstMajorAxisPointX, relativeDstMajorAxisPointY, relativeDstMinorAxisPointX, relativeDstMinorAxisPointY):
-            logging.warning('Early return in the ellipse transformation computation!')
+            self.logger.warning('Early return in the ellipse transformation computation!')
             pass
 
     # After a random transformation, the controls points may change its direction, left handed <->

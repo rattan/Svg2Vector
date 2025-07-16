@@ -16,6 +16,8 @@ from XmlUtils import XmlUtils
 
 #Represent the SVG file in an internal data structure as a tree
 class SvgTree:
+    logger = logging.getLogger('Svg2Vector')
+
     HEAD = '<vector xmlns:android="http://schemas.android.com/apk/res/android"'
     AAPT_BOUND = 'xmlns:aapt="http://schemas.android.com/aapt"'
 
@@ -131,13 +133,13 @@ class SvgTree:
         # mRootTransform is always setup, now just need to apply th viewbox info into.
         self.mRootTransform.preConcatenate(AffineTransform(1, 0, 0, 1, -self.viewBox[0], -self.viewBox[1]))
         self.transform(self.mRootTransform)
-        logging.info(f'matrix={self.mRootTransform}')
+        self.logger.info(f'matrix={self.mRootTransform}')
 
     def transform(self, rootTransform: AffineTransform):
         self.mRoot.transformIfNeeded(rootTransform)
 
     def dump(self):
-        logging.info(f'file {self.mFileName}')
+        self.logger.info(f'file {self.mFileName}')
         self.mRoot.dumpNode('')
 
     def setRoot(self, root: SvgGroupNode):

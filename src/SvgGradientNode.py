@@ -19,6 +19,7 @@ from VdUtil import VdUtil
 
 # Represents an SVG gradient that is referenced by a SvgLeafNode.
 class SvgGradientNode(SvgNode):
+    logger = logging.getLogger('Svg2Vector')
     # Maps the gradient vector's coordinate names to an int for easier array lookup.
     vectorCoordinateMap = {
         'x1': 0,
@@ -91,7 +92,7 @@ class SvgGradientNode(SvgNode):
     
     def dumpNode(self, indent: str):
         # Print the current node.
-        logging.info(f'{indent} current gradient is :{self.getName()}')
+        self.logger.info(f'{indent} current gradient is :{self.getName()}')
         pass
     
     def transformIfNeeded(self, rootTransform: AffineTransform):

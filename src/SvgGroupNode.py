@@ -8,6 +8,7 @@ from SvgNode import SvgNode
 
 # Represent a SVG file's group element
 class SvgGroupNode(SvgNode):
+    logger = logging.getLogger('Svg2Vector')
     def __init__(self, svgTree: 'SvgTree', docNode: minidom.Element, name: str):
         super().__init__(svgTree, docNode, name)
         self.mChildren = []
@@ -80,7 +81,7 @@ class SvgGroupNode(SvgNode):
 
     def dumpNode(self, indent):
         # Print the current group.
-        logging.info(f'{indent} group: {self.getName()}')
+        self.logger.info(f'{indent} group: {self.getName()}')
 
         # Then print all the children
         for node in self.mChildren:

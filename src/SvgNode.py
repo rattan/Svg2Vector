@@ -13,6 +13,8 @@ from SvgColor import SvgColor
 
 # Parent class for a SVG file's node, can be either group or leave element.
 class SvgNode(metaclass=ABCMeta):
+    logger = logging.getLogger('Svg2Vector')
+
     INDENT_UNIT = '  '
     CONTINUATION_INDENT = INDENT_UNIT + INDENT_UNIT
     TRANSFORM_TAG = 'transform'
@@ -66,7 +68,7 @@ class SvgNode(metaclass=ABCMeta):
                 self.fillPresentationAttributesInternal(nodeName, nodeValue)
             
             if self.TRANSFORM_TAG == nodeName:
-                logging.info(f'{nodeName} {nodeValue}')
+                self.logger.info(f'{nodeName} {nodeValue}')
                 self.parseLocalTransform(nodeValue)
 
     def parseLocalTransform(self, nodeValue: str):

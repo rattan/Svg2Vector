@@ -13,6 +13,7 @@ from XmlUtils import XmlUtils
 
 # Represent a SVG file's leave element
 class SvgLeafNode(SvgNode):
+    logger = logging.getLogger('Svg2Vector')
     def __init__(self, svgTree, node, nodeName):
         super().__init__(svgTree, node, nodeName)
         self.mPathData = None
@@ -111,7 +112,7 @@ class SvgLeafNode(SvgNode):
             self.mVdAttributesMap[attributeName] = attributeValue
     
     def dumpNode(self, indent: str):
-        logging.info(f'indent{' None pathData' if self.mPathData is None else self.mPathData}{' null name' if self.mName is None else self.mName}')
+        self.logger.info(f'indent{' None pathData' if self.mPathData is None else self.mPathData}{' null name' if self.mName is None else self.mName}')
         pass
 
     def setPathData(self, pathData: str):
@@ -192,13 +193,13 @@ class SvgLeafNode(SvgNode):
         writer.write('<path')
         writer.write(os.linesep)
         if not fillColor and not self.mFillGradientNode:
-            logging.info('Adding default fill color')
+            self.logger.info('Adding default fill color')
             writer.write(indent)
             writer.write(self.CONTINUATION_INDENT)
             writer.write('android:fillColor="#FF000000"')
             writer.write(os.linesep)
         if not emptyStroke and 'stroke-width' not in self.mVdAttributesMap and not self.mStrokeGradientNode:
-            logging.info('Adding default stroke width')
+            self.logger.info('Adding default stroke width')
             writer.write(indent)
             writer.write(self.CONTINUATION_INDENT)
             writer.write('android:strokeWidth="1"')
