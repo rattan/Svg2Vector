@@ -318,9 +318,8 @@ class SvgTree:
 
     # Formats and returns the given coordinate with an appropriate precision. */
     def formatCoordinate(self, coordinate: float) -> str:
-        fm = self.getCoordinateFormat()
-        coordinate = struct.unpack('f', struct.pack('f', coordinate))[0]
-        coordinate = round(coordinate + 10 ** (-len(str(coordinate)) - 1), int(fm[3:4]))
+        # fm = self.getCoordinateFormat()
+        # coordinate = round(coordinate + 10 ** (-len(str(coordinate)) - 1), int(fm[3:4]))
         return XmlUtils.trimInsignificantZeros(self.getCoordinateFormat().format(coordinate))
 
     # Returns a {@link NumberFormat] of sufficient precision to use for formatting coordinate
@@ -343,22 +342,22 @@ class SvgTree:
             writer.write(os.linesep)
         writer.write(SvgNode.CONTINUATION_INDENT)
         writer.write('android:width="')
-        writer.write(self.formatCoordinate(self.getWidth() * self.getScaleFactor()))
+        writer.write(self.formatCoordinate(self.to32Float(self.getWidth() * self.getScaleFactor())))
         writer.write('dp"')
         writer.write(os.linesep)
         writer.write(SvgNode.CONTINUATION_INDENT)
         writer.write('android:height="')
-        writer.write(self.formatCoordinate(self.getHeight() * self.getScaleFactor()))
+        writer.write(self.formatCoordinate(self.to32Float(self.getHeight() * self.getScaleFactor())))
         writer.write('dp"')
         writer.write(os.linesep)
         writer.write(SvgNode.CONTINUATION_INDENT)
         writer.write('android:viewportWidth="')
-        writer.write(self.formatCoordinate(self.getViewportWidth()))
+        writer.write(self.formatCoordinate(self.to32Float(self.getViewportWidth())))
         writer.write('"')
         writer.write(os.linesep)
         writer.write(SvgNode.CONTINUATION_INDENT)
         writer.write('android:viewportHeight="')
-        writer.write(self.formatCoordinate(self.getViewportHeight()))
+        writer.write(self.formatCoordinate(self.to32Float(self.getViewportHeight())))
         writer.write('">')
         writer.write(os.linesep)
         self.normalize()
@@ -369,3 +368,7 @@ class SvgTree:
     class SizeType(Enum):
         PIXEL = 1
         PERCENTAGE = 2
+
+    @classmethod
+    def to32Float(cls, f: float) -> float:
+        return struct.unpack('f', struct.pack('f', f))[0]

@@ -153,10 +153,10 @@ class SvgLeafNode(SvgNode):
                     determinant = self.mStackedTransform.getDeterminant()
                     if determinant != 0:
                         width *= math.sqrt(abs(determinant))
-                        self.mVdAttributesMap['stroke-width'] = self.mSvgTree.formatCoordinate(width)
+                        # self.mVdAttributesMap['stroke-width'] = self.mSvgTree.formatCoordinate(width)
+                        self.mVdAttributesMap['stroke-width'] = self.mSvgTree.formatCoordinate(self.mSvgTree.to32Float(width))
                     if (self.mStackedTransform.getType() & AffineTransform.TYPE_GENERAL_SCALE) != 0:
                         self.logWarning('Scaling of the stroke width is apporoximate')
-                        pass
                 except Exception as e:
                     pass
 

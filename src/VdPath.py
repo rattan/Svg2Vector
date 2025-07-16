@@ -92,7 +92,7 @@ class VdPath(VdElement):
                     param = node.mParams[j]
                     if not math.isfinite(param):
                         raise ValueError(f'Invalid number: {param}')
-                    result += svgTree.formatCoordinate(param)
+                    result += svgTree.formatCoordinate(svgTree.to32Float(param))
             return result
 
         @classmethod
@@ -269,3 +269,7 @@ class VdPath(VdElement):
         color &= 0x00FFFFFF
         color |= int(alphaBytes * alpha) << 24
         return color
+
+    @classmethod
+    def to32Float(cls, f: float) -> float:
+        return struct.unpack('f', struct.pack('f', f))[0]
