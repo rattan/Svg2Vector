@@ -156,7 +156,7 @@ class SvgTree:
         if not s:
             ValueError(f's must not be empty')
         line = self.getStartLine(node) if node else 0
-        self.mLogMessages.append(LogMessage(level, line, s))
+        self.mLogMessages.append(self.LogMessage(level, line, s))
 
     # Returns the error message that combines all logged errors and warnings. If there were no
     # errors, returns an empty string.
@@ -318,9 +318,14 @@ class SvgTree:
 
     # Formats and returns the given coordinate with an appropriate precision. */
     def formatCoordinate(self, coordinate: float) -> str:
-        # fm = self.getCoordinateFormat()
-        # coordinate = round(coordinate + 10 ** (-len(str(coordinate)) - 1), int(fm[3:4]))
         return XmlUtils.trimInsignificantZeros(self.getCoordinateFormat().format(coordinate))
+
+    @classmethod
+    def to32Float(cls, value: float) -> float:
+        return struct.unpack('f', struct.pack('f', value))[0]
+
+    def roundHalfUp(self, value: float) -> str:
+        return round(value + 10 ** (-len(str(value)) - 1), int(self.getCoordinateFormat()[3:4]))
 
     # Returns a {@link NumberFormat] of sufficient precision to use for formatting coordinate
     # values within the viewport.
@@ -368,7 +373,3 @@ class SvgTree:
     class SizeType(Enum):
         PIXEL = 1
         PERCENTAGE = 2
-
-    @classmethod
-    def to32Float(cls, f: float) -> float:
-        return struct.unpack('f', struct.pack('f', f))[0]

@@ -278,7 +278,7 @@ class SvgGradientNode(SvgNode):
                 coordinateIndex = self.vectorCoordinateMap.get(svgAttribute)
                 if coordinateIndex is not None:
                     x = transformedBounds[coordinateIndex]
-                    vdValue = self.mSvgTree.formatCoordinate(x)
+                    vdValue = self.mSvgTree.formatCoordinate(self.mSvgTree.roundHalfUp(x))
                 elif svgAttribute == 'spreadMethod':
                     if svgValue == 'pad':
                         vdValue = 'clamp'
