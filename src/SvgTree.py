@@ -8,6 +8,7 @@ from xml.dom import minidom
 
 from AffineTransform import AffineTransform
 from OutputStreamWriter import OutputStreamWriter
+from PositionXmlParser import PositionXmlParser
 from SvgGradientNode import SvgGradientNode
 from SvgGroupNode import SvgGroupNode
 from SvgNode import SvgNode
@@ -125,9 +126,9 @@ class SvgTree:
     def parse(self, path: str, parseErrors: list[str]) -> minidom.Document:
         self.mFileName = os.path.basename(path)
         try:
-            return minidom.parse(self.mFileName)  
+            return PositionXmlParser.parse(path)
         except Exception as e:
-            raise Exception(f'Internal error {e}')    
+            raise Exception(f'Internal error {e}')
 
     def normalize(self):
         # mRootTransform is always setup, now just need to apply th viewbox info into.
@@ -181,12 +182,11 @@ class SvgTree:
         return self.mHasGradient
 
     # Returns the 1-based start line number of the given node.
-    @classmethod
-    def getStartLine(cls, node):
-        # xml.dom.minidom doesn’t have start line number information on node.
-        # TODO: inherits xml.dom.minidom can find node line or find other method to finde line.
-        return 0
-        # return PositionXmlParser.getPosition(node).getStartLine() + 1
+    def getStartLine(self, node) -> int:
+        if hasattr(node, '__line_number__'):
+            return node.__line_number__
+        else:
+            return 0
 
     def getViewportWidth(self) -> float:
         return self.viewBox[2] if self.viewBox else -1.0
