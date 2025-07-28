@@ -27,7 +27,7 @@ class LineNumberDOMHandler(xml.sax.handler.ContentHandler):
     def characters(self, content):
         if content.strip():
             text_node = self.dom.createTextNode(content)
-            self.current_node_appendChild(text_node)
+            self.current_node.appendChild(text_node)
 
     def get_dom(self):
         return self.dom
