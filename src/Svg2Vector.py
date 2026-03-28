@@ -285,7 +285,7 @@ class Svg2Vector:
         nodes = svgTree.getPendingGradientRefSet()
         while nodes:
             nl = len(nodes)
-            nodes = {n for n in nodes if n.resoveHref(svgTree)}
+            nodes = {n for n in nodes if n.resolveHref(svgTree)}
             if nl == len(nodes):
                 # Not avle to make progress because of cyclic references.
                 cls.reportCycles(svgTree, nodes)
@@ -479,7 +479,7 @@ class Svg2Vector:
                     svgTree.addClipPathAffectedNode(childGroup, currentGroup, value)
             elif name == 'class':
                 if value:
-                    svgTree.addAffectedNodeToStyleClass('.', value, childGroup)                    
+                    svgTree.addAffectedNodeToStyleClass(value, childGroup)                    
 
     # Extracts the attribute information from a style element and adds to the
     # styleClassAttributeMap of the SvgTree. SvgNodes reference style elements using a 'class'
@@ -491,13 +491,13 @@ class Svg2Vector:
         styleData = ''
         for j in range(a.length):
             n = a.item(j)
-            if n.nodeType == minidom.Type.CDATA_SECTION_NODE or a.length == 1:
+            if n.nodeType == minidom.Node.CDATA_SECTION_NODE or a.length == 1:
                 styleData = n.nodeValue
         if styleData:
             # Separate each of the classes.
             classData = styleData.split('}')
             for sClassData in classData:
-                splitClassData = aClassData.split('\\{')
+                splitClassData = sClassData.split('{')
                 if len(splitClassData) < 2:
                     # When the class info is empty, then skip.
                     continue
@@ -583,7 +583,7 @@ class Svg2Vector:
                     hasNodeAttr = True
             
             displayAttr = parentNode.getAttribute(cls.SVG_DISPLAY)
-            if displayAttr and 'none' == displayAttr.ndoeValue:
+            if displayAttr == 'none':
                 cls.logger.info('Found display:none style, skip the whole group')
                 nothingToDisplay = True
                 break

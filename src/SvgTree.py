@@ -3,8 +3,9 @@ from enum import Enum
 import logging
 import os
 import struct
-from typing import Self
 from xml.dom import minidom
+
+from typing_compat import Self
 
 from AffineTransform import AffineTransform
 from OutputStreamWriter import OutputStreamWriter

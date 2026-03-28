@@ -1,6 +1,6 @@
 from abc import *
 import math
-from typing import Self
+from typing_compat import Self
 
 
 class Rectangle2D(metaclass = ABCMeta):

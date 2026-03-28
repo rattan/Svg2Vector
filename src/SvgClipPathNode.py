@@ -1,5 +1,5 @@
 import os
-from typing import Self
+from typing_compat import Self
 from xml.dom import minidom
 
 from OutputStreamWriter import OutputStreamWriter

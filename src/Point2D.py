@@ -1,6 +1,6 @@
 from abc import *
 import math
-from typing import Self
+from typing_compat import Self
 
 # The {@code Point2D} class defines a point representing a location
 # in {@code (x,y)} coordinate space.

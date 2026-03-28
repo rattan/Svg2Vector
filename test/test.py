@@ -18,7 +18,7 @@ class Svg2VectorTest(unittest.TestCase):
     def testCircle(self):
         SvgXmlCompare.testSvgXml('circle', self)
 
-    def testCircle(self):
+    def testClipPath(self):
         SvgXmlCompare.testSvgXml('clipPath', self)
 
     def testDefs(self):

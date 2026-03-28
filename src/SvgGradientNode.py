@@ -1,7 +1,7 @@
 from enum import Enum
 import logging
 import os
-from typing import Self
+from typing_compat import Self
 from xml.dom import minidom
 
 from AffineTransform import AffineTransform
@@ -76,8 +76,7 @@ class SvgGradientNode(SvgNode):
         _id = self.getHrefId()
         referencedNode = svgTree.getSvgNodeFromId(_id) if _id else None 
         if isinstance(referencedNode, SvgGradientNode):
-            #noinspection SuspiciousMethodCalls
-            if (svgTree.getPendingUseSet().contains(referencedNode)):
+            if referencedNode in svgTree.getPendingUseSet():
                 # Cannot process this node, because referencedNode it depends upon
                 # hasn't been processed yet.
                 return False
@@ -327,8 +326,12 @@ class SvgGradientNode(SvgNode):
                 self.logWarning('Unsupported opacity value')
                 opacity = 1.0
             
-            color1 = VdPath.applyAlpha(VdUtil.parseColorValue(color), opacity)
-            color = '#%08X' % color1
+            try:
+                color1 = VdPath.applyAlpha(VdUtil.parseColorValue(color), opacity)
+                color = '#%08X' % color1
+            except (ValueError, Exception):
+                self.logWarning(f'Unsupported color value {color}')
+                color = '#FF000000'  # fallback to black
             writer.write(indent)
             writer.write('<item android:offset="')
             writer.write(XmlUtils.trimInsignificantZeros(g.getOffset()))

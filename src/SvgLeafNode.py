@@ -1,7 +1,7 @@
 import logging
 import math
 import os
-from typing import Self
+from typing_compat import Self
 
 from AffineTransform import AffineTransform
 from OutputStreamWriter import OutputStreamWriter
@@ -112,7 +112,9 @@ class SvgLeafNode(SvgNode):
             self.mVdAttributesMap[attributeName] = attributeValue
     
     def dumpNode(self, indent: str):
-        self.logger.info(f'indent{' None pathData' if self.mPathData is None else self.mPathData}{' null name' if self.mName is None else self.mName}')
+        pathData = 'None pathData' if self.mPathData is None else self.mPathData
+        name = 'null name' if self.mName is None else self.mName
+        self.logger.info(f'{indent} {pathData} {name}')
         pass
 
     def setPathData(self, pathData: str):

@@ -1,5 +1,5 @@
 import math
-from typing import Self
+from typing_compat import Self
 import sys
 
 from Point2D import Point2DF, Point2D

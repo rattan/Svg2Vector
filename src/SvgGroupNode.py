@@ -1,5 +1,5 @@
 import logging
-from typing import Self
+from typing_compat import Self
 from xml.dom import minidom
 
 from AffineTransform import AffineTransform
@@ -120,11 +120,11 @@ class SvgGroupNode(SvgNode):
         for node in self.mChildren:
             node.writeXml(OutputStreamWriter, indent)
     
-    def accpet(self, visitor: SvgNode.Visitor) -> SvgNode.VisitResult:
+    def accept(self, visitor: SvgNode.Visitor) -> SvgNode.VisitResult:
         result = visitor.visit(self)
-        if result == Visiresult.CONTINUE:
+        if result == self.VisitResult.CONTINUE:
             for node in self.mChildren:
-                if node.accpet(visitor) == self.VisitResult.ABORT:
+                if node.accept(visitor) == self.VisitResult.ABORT:
                     return self.VisitResult.ABORT
         return self.VisitResult.CONTINUE if result == self.VisitResult.SKIP_CHILDREN else result
 

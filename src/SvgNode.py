@@ -4,7 +4,7 @@ from enum import Enum
 import logging
 import math
 import re
-from typing import Self
+from typing_compat import Self
 from xml.dom import minidom
 
 from AffineTransform import AffineTransform

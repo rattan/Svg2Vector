@@ -1,5 +1,4 @@
-from typing import Self
-
+from typing_compat import Self
 from XmlUtils import XmlUtils
 
 # Build a string for Svg file's path data.
