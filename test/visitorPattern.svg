@@ -1,0 +1,10 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <g id="group1" fill="#FF0000">
+    <rect x="10" y="10" width="40" height="40"/>
+    <circle cx="130" cy="30" r="20"/>
+  </g>
+  <g id="group2" fill="#00FF00">
+    <rect x="10" y="60" width="40" height="40"/>
+    <circle cx="130" cy="80" r="20"/>
+  </g>
+</svg>
