@@ -110,5 +110,74 @@ class Svg2VectorTest(unittest.TestCase):
         """
         SvgXmlCompare.testSvgXml('gradientHref', self)
 
+    # Additional coverage tests for uncovered code paths
+
+    def testStrokeAttributes(self):
+        """
+        Test: stroke-linecap and stroke-linejoin attributes
+        Coverage: SvgNode.presentationMap mapping, SvgLeafNode.writeAttributeValues
+        Expected: VectorDrawable output includes android:strokeLineCap="round"
+                  and android:strokeLineJoin="bevel"
+        """
+        SvgXmlCompare.testSvgXml('strokeAttributes', self)
+
+    def testFillRule(self):
+        """
+        Test: fill-rule: evenodd attribute mapping
+        Coverage: SvgNode.fillPresentationAttributesInternal fill-rule conversion
+        Expected: android:fillType="evenOdd" appears in output
+        """
+        SvgXmlCompare.testSvgXml('fillRule', self)
+
+    def testOpacity(self):
+        """
+        Test: opacity, fill-opacity, and stroke-opacity combination
+        Coverage: SvgLeafNode.parsePathOpacity, getOpacityValueFromMap, putOpacityValueToMap
+        Expected: opacity * fill-opacity combined into android:fillAlpha
+                  opacity * stroke-opacity combined into android:strokeAlpha
+        """
+        SvgXmlCompare.testSvgXml('opacity', self)
+
+    def testMatrixTransform(self):
+        """
+        Test: matrix(a b c d e f) transform
+        Coverage: SvgNode.parseOneTransform matrix branch
+        Expected: Rect coordinates transformed correctly (equiv to translate(50,75))
+        """
+        SvgXmlCompare.testSvgXml('matrixTransform', self)
+
+    def testRoundedRect(self):
+        """
+        Test: Rounded rect with rx attribute (rx only, ry fallback to rx)
+        Coverage: Svg2Vector.extractRectItem rx/ry branch with arc generation
+        Expected: Path data contains A (arc) commands for rounded corners
+        """
+        SvgXmlCompare.testSvgXml('roundedRect', self)
+
+    def testGradientUserSpace(self):
+        """
+        Test: linearGradient with gradientUnits="userSpaceOnUse"
+        Coverage: SvgGradientNode.writeXml userSpaceOnUse branch
+        Expected: Gradient coordinates use viewport dimensions (200,200)
+                  not bounding box dimensions (160,160)
+        """
+        SvgXmlCompare.testSvgXml('gradientUserSpace', self)
+
+    def testStrokeGradient(self):
+        """
+        Test: Gradient applied to stroke (not fill)
+        Coverage: SvgGradientNode.writeXml STROKE branch
+        Expected: <aapt:attr name="android:strokeColor"> (not fillColor)
+        """
+        SvgXmlCompare.testSvgXml('strokeGradient', self)
+
+    def testRelativePath(self):
+        """
+        Test: Path with relative commands (c, s) directly in d attribute
+        Coverage: VdPath.Node.transformImpl relative bezier branches
+        Expected: c and s commands correctly handled in path data output
+        """
+        SvgXmlCompare.testSvgXml('relativePath', self)
+
 if __name__ == '__main__':
     unittest.main()

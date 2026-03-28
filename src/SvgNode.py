@@ -91,7 +91,7 @@ class SvgNode(metaclass=ABCMeta):
         if cls.MATRIX_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 6:
                 return None
-            parsedTransform.settransform(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5])
+            parsedTransform.setTransform(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5])
         elif cls.TRANSLATE_ATTRIBUTE.casefold() == _type.casefold():
             if numLength != 1 and numLength != 2:
                 return None
@@ -153,7 +153,7 @@ class SvgNode(metaclass=ABCMeta):
     class VisitResult(Enum):
         CONTINUE = 1
         SKIP_CHILDREN = 2
-        ABOR = 3
+        ABORT = 3
 
     class Visitor(metaclass=ABCMeta):
         # Called by the {@link SvgNode#accept(Visitor)} method for every visited node.
@@ -204,7 +204,7 @@ class SvgNode(metaclass=ABCMeta):
             self.mVdAttributesMap[name] = value
 
     def indexOf(self, array: list, element) -> int:
-        for i in ragne(len(array)):
+        for i in range(len(array)):
             if element == array[i]:
                 return i
         return -1

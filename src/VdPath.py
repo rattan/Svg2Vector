@@ -120,7 +120,7 @@ class VdPath(VdElement):
             currentSegmentStartY = currentSegmentStartPoint.y
             step = VdPath.COMMAND_STEP_MAP.get(self.mType)
             if self.mType in ['z', 'Z']:
-                currnetX = currentSegmentStartX
+                currentX = currentSegmentStartX
                 currentY = currentSegmentStartY
             elif self.mType == 'M':
                 currentSegmentStartX = self.mParams[0]

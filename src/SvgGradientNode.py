@@ -84,9 +84,9 @@ class SvgGradientNode(SvgNode):
             self.copyFrom(referencedNode)
         elif referencedNode is None:
             if not _id or not svgTree.isIdIgnored(_id):
-                svgTree.logError('Referenced id not found', mDocumentElement)
+                svgTree.logError('Referenced id not found', self.mDocumentElement)
         else:
-            svgTree.logError('Referenced element is not a gradient', mDocumentElement)
+            svgTree.logError('Referenced element is not a gradient', self.mDocumentElement)
         return True
     
     def dumpNode(self, indent: str):
