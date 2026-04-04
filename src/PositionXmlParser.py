@@ -38,5 +38,5 @@ class PositionXmlParser:
         handler = LineNumberDOMHandler()
         parser = xml.sax.make_parser()
         parser.setContentHandler(handler)
-        xml.sax.parse(path, handler)
+        xml.sax.parseString(path, handler)
         return handler.get_dom()
