@@ -1,5 +1,6 @@
 import sys
-sys.path.append('../src')
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
 import unittest
 
 from OutputStreamWriter import OutputStreamWriter
@@ -8,9 +9,14 @@ from Svg2Vector import Svg2Vector
 class SvgXmlCompare:
     @classmethod
     def testSvgXml(cls, name: str, testCase: unittest.TestCase):
-        with open(f'{name}.xml', 'r') as file:
+        # Get the path to the XML/SVG files relative to this test script
+        test_dir = os.path.dirname(__file__)
+        xml_path = os.path.join(test_dir, f'{name}.xml')
+        svg_path = os.path.join(test_dir, f'{name}.svg')
+        
+        with open(xml_path, 'r') as file:
             w = OutputStreamWriter()
-            Svg2Vector.parseSvgToXml(f'{name}.svg', w)
+            Svg2Vector.parseSvgToXml(svg_path, w)
             testCase.assertMultiLineEqual(file.read(), w.toString())
 
 class Svg2VectorTest(unittest.TestCase):
@@ -56,7 +62,7 @@ class Svg2VectorTest(unittest.TestCase):
     def testUse(self):
         SvgXmlCompare.testSvgXml('use', self)
 
-    def teatAndroid(self):
+    def testAndroid(self):
         SvgXmlCompare.testSvgXml('android', self)
 
     def testStudio(self):

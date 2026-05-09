@@ -41,7 +41,7 @@ class Point2D(metaclass = ABCMeta):
     # sets of specified coordinates.
     # @since 1.2
     @classmethod
-    def distanceSq(cls, x1, y1, x2, y2) -> float:
+    def distanceSq_4(cls, x1, y1, x2, y2) -> float:
         x1 -= x2
         y1 -= y2
         return x1 * x1 + y1 * y1
@@ -55,7 +55,7 @@ class Point2D(metaclass = ABCMeta):
     # @return the square of the distance between this
     # {@code Point2D} and the specified point.
     # @since 1.2
-    def distanceSq(self, px: float, py: float) -> float:
+    def distanceSq_2(self, px: float, py: float) -> float:
         px -= self.getX()
         py -= self.getY()
         return px * px + py * py
@@ -67,7 +67,7 @@ class Point2D(metaclass = ABCMeta):
     # @return the square of the distance between this
     # {@code Point2D} to a specified {@code Point2D}.
     # @since 1.2
-    def distanceSq(self, pt: Self) -> float:
+    def distanceSq_1(self, pt: Self) -> float:
         px = pt.getX() - self.getX()
         py = pt.getY() - self.getY()
         return px * px + py * py

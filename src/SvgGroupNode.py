@@ -24,7 +24,7 @@ class SvgGroupNode(SvgNode):
         for child in frm.mChildren:
             self.addChild(child.deepCopy())
 
-    # Revolve the 'href' reference to a difference group element in this 'use' group node.
+    # Resolve the 'href' reference to a difference group element in this 'use' group node.
     def resolveHref(self, svgTree: 'SvgTree') -> bool:
         _id = self.getHrefId()
         self.mUseReferenceNode = svgTree.getSvgNodeFromId(_id) if _id else None

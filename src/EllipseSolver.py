@@ -39,7 +39,7 @@ class EllipseSolver:
         minorAxisPoint.y += originalCenter.y
         middleRadians = math.pi / 4 # This number can be anything between 0 and PI/2.
         middleR = rx * ry / math.hypot(ry * math.cos(middleRadians), rx * math.sin(middleRadians))
-        middlePoint = Point2DF(middleR * math.cos(middleRadians),middleR * math.sin(middleRadians))
+        middlePoint = Point2DF(middleR * math.cos(middleRadians), middleR * math.sin(middleRadians))
         middlePoint = self.rotatePoint2D(middlePoint, xAxisRotation)
         middlePoint.x += originalCenter.x
         middlePoint.y += originalCenter.y

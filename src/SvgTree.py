@@ -235,10 +235,10 @@ class SvgTree:
             self.h = self.viewBox[3]
 
         if widthType == self.SizeType.PERCENTAGE and self.w > 0:
-            self.w = self.viewBox[2] * w / 100
+            self.w = self.viewBox[2] * self.w / 100
 
         if heightType == self.SizeType.PERCENTAGE and self.h > 0:
-            self.h = self.viewBox[3] * h / 100
+            self.h = self.viewBox[3] * self.h / 100
 
     # Parses an X coordinate of a width value that can be an absolute number or percentage of
     # the viewport size.
@@ -316,7 +316,7 @@ class SvgTree:
 
     # Finds the parent node of the input node.
     # @return the parent node, or null if node is not in the tree.
-    def findParent(sefl, node: SvgNode) -> SvgGroupNode:
+    def findParent(self, node: SvgNode) -> SvgGroupNode:
         return self.mRoot.findParent(node)
 
     # Formats and returns the given coordinate with an appropriate precision. */

@@ -65,11 +65,11 @@ class PathBuilder:
         self.mPathData += f'q{XmlUtils.formatFloatValue(cp1x)},{XmlUtils.formatFloatValue(cp1y)},{XmlUtils.formatFloatValue(x)},{XmlUtils.formatFloatValue(y)}'
         return self
 
-    def absoluteSmoothQuadraticCurveTo(x: float, y: float) -> Self:
+    def absoluteSmoothQuadraticCurveTo(self, x: float, y: float) -> Self:
         self.mPathData += f'T{XmlUtils.formatFloatValue(x)},{XmlUtils.formatFloatValue(y)}'
         return self
 
-    def relativeSmoothQuadraticCurveTo(x: float, y: float) -> Self:
+    def relativeSmoothQuadraticCurveTo(self, x: float, y: float) -> Self:
         self.mPathData += f't{XmlUtils.formatFloatValue(x)},{XmlUtils.formatFloatValue(y)}'
         return self
 

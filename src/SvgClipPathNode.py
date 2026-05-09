@@ -7,6 +7,7 @@ from AffineTransform import AffineTransform
 from SvgGroupNode import SvgGroupNode
 from SvgLeafNode import SvgLeafNode
 from SvgNode import SvgNode
+from VdUtil import VdUtil
 
 # Represents a SVG group element that contains a clip-path. SvgClipPathNode's mChildren will
 # contain the actual path data of the clip-path. The path of the clip will be constructed in

@@ -178,12 +178,12 @@ class Svg2Vector:
         # Get <svg> elements.
         nSvgNode = doc.getElementsByTagName('svg')
         if len(nSvgNode) != 1:
-            message = 'No <svg> tags found' if len(svgNode) == 0 else 'Multiple <svg> tags are not supported.'
+            message = 'No <svg> tags found' if len(nSvgNode) == 0 else 'Multiple <svg> tags are not supported.'
             raise ValueError(message)
         rootElement = nSvgNode.item(0)
         svgTree.parseDimension(rootElement)
 
-        if svgTree.viewBox == None:
+        if svgTree.viewBox is None:
             svgTree.logError('Missing "viewBox" in <svg> element', rootElement)
             return svgTree
         
@@ -249,7 +249,7 @@ class Svg2Vector:
                     if child not in inDegrees:
                         queue.append(child)
                         inDegrees[child] = 0
-                useRefNode = groupNode.mUseReferenceNode
+                useRefNode = current.mUseReferenceNode
                 if useRefNode:
                     reverseGraph.setdefault(useRefNode, {})
                     reverseGraph[useRefNode].append(current)
@@ -562,7 +562,6 @@ class Svg2Vector:
         parentNode = currentItem.parentNode
         hasNodeAttr = False
         styleContent = ''
-        styleContentBuilder = ''
         nothingToDisplay = False
 
         while parentNode and parentNode.nodeName == 'g':
@@ -734,8 +733,8 @@ class Svg2Vector:
                     elif 'height' == name:
                         height = svg.parseYValue(value)
                     elif 'class' == name:
-                        svgTree.addAffectedNodeToStyleClass(f'rect.{value}', child)
-                        svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+                        svg.addAffectedNodeToStyleClass(f'rect.{value}', child)
+                        svg.addAffectedNodeToStyleClass(f'.{value}', child)
                 except Exception:
                     svg.logError(f'Invalid attribute value: {name}="{value}"', currentGroupNode)
             
@@ -802,8 +801,8 @@ class Svg2Vector:
                 elif 'r' == name:
                     radius = float(value)
                 elif 'class' == name:
-                    svgTree.addAffectedNodeToStyleClass(f'circle.{value}', child)
-                    svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+                    svg.addAffectedNodeToStyleClass(f'circle.{value}', child)
+                    svg.addAffectedNodeToStyleClass(f'.{value}', child)
 
                 if not pureTransparent and cx != float('nan') and cy != float('nan'):
                     # "M cx cy m -r, 0 a r,r 0 1,1 (r * 2)0 a r,r 0 1,1 -(r * 2),0"
@@ -848,8 +847,8 @@ class Svg2Vector:
                 elif 'ry' == name:
                     ry = float(value)
                 elif 'class' == name:
-                    svgTree.addAffectedNodeToStyleClass(f'ellipse.{value}', child)
-                    svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+                    svg.addAffectedNodeToStyleClass(f'ellipse.{value}', child)
+                    svg.addAffectedNodeToStyleClass(f'.{value}', child)
 
             if not pureTransparent and cx != float('nan') and cy != float('nan') and 0 < rx and 0 < ry:
                 # "M cx -rx, cy a rx,ry 0 1,0 (rx * 2),0 a rx,ry 0 1,0 -(rx * 2),0"
@@ -894,10 +893,10 @@ class Svg2Vector:
                 elif 'y2' == name:
                     y2 = float(value)
                 elif 'class' == name:
-                    svgTree.addAffectedNodeToStyleClass(f'line.{value}', child)
-                    svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
+                    svg.addAffectedNodeToStyleClass(f'line.{value}', child)
+                    svg.addAffectedNodeToStyleClass(f'.{value}', child)
 
-            if pureTransparent == False and svg and x1 != float('nan') and y1 != float('nan') and x2 != float('nan') and y2 != float('nan'):
+            if pureTransparent is False and svg and x1 != float('nan') and y1 != float('nan') and x2 != float('nan') and y2 != float('nan'):
                 # "M x1, y1 L x2, y2"
                 builder = PathBuilder()
                 builder.absoluteMoveTo(x1, y1)

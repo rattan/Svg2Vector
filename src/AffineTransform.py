@@ -355,7 +355,7 @@ class AffineTransform:
         M10 = 0.0
         M11 = 0.0
         M12 = 0.0
-        if dstPts == srcPts and srcOff < dstOff and desOff < srcOff + numPts * 2:
+        if dstPts == srcPts and srcOff < dstOff and dstOff < srcOff + numPts * 2:
             dstPts[dstOff:dstOff + numPts * 2] = srcPts[srcOff:srcOff + numPts * 2]
             srcOff = dstOff
         if self.state == self.APPLY_SHEAR | self.APPLY_SCALE | self.APPLY_TRANSLATE:
@@ -491,7 +491,7 @@ class AffineTransform:
             M10 = self.m10
             M11 = self.m11
             det = M00 * M11 - M01 * M10
-            if abs(det) <= Double.MIN_VALUE:
+            if abs(det) <= sys.float_info.min:
                 raise ValueError(f'Determinant is {det}')
             self.m00 =  M11 / det
             self.m10 = -M10 / det
@@ -1265,6 +1265,17 @@ class AffineTransform:
             self.stateError()
             # If state_error raises an exception, this 'return' is unreachable.
             return
+        
+    rot90conversion = [
+        APPLY_SHEAR,
+        APPLY_SHEAR | APPLY_TRANSLATE,
+        APPLY_SHEAR,
+        APPLY_SHEAR | APPLY_TRANSLATE,
+        APPLY_SCALE,
+        APPLY_SCALE | APPLY_TRANSLATE,
+        APPLY_SHEAR | APPLY_SCALE,
+        APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE,
+    ]
 
     def rotate90(self):
         M0 = self.m00
@@ -1273,11 +1284,11 @@ class AffineTransform:
         M0 = self.m10
         self.m10 = self.m11
         self.m11 = -M0
-        state = rot90conversion[self.state]
+        state = self.rot90conversion[self.state]
         if (state & (self.APPLY_SHEAR | self.APPLY_SCALE)) == self.APPLY_SCALE and self.m00 == 1.0 and self.m11 == 1.0:
-            state -= APPLY_SCALE
+            state -= self.APPLY_SCALE
         self.state = state
-        self.type = TYPE_UNKNOWN
+        self.type = self.TYPE_UNKNOWN
 
     def rotate180(self):
         self.m00 = -self.m00
@@ -1288,10 +1299,10 @@ class AffineTransform:
             self.m10 = -self.m10
         else:
             if self.m00 == 1.0 and self.m11 == 1.0:
-                self.state = state & ~APPLY_SCALE
+                self.state = state & ~self.APPLY_SCALE
             else:
-                self.state = state | APPLY_SCALE
-        self.type = TYPE_UNKNOWN
+                self.state = state | self.APPLY_SCALE
+        self.type = self.TYPE_UNKNOWN
     
     def rotate270(self):
         M0 = self.m00
@@ -1300,11 +1311,11 @@ class AffineTransform:
         M0 = self.m10
         self.m10 = -self.m11
         self.m11 = M0
-        state = rot90conversion[self.state]
+        state = self.rot90conversion[self.state]
         if self.state & (self.APPLY_SHEAR | self.APPLY_SCALE) == self.APPLY_SCALE and self.m00 == 1.0 and self.m11 == 1.0:
-            state -= APPLY_SCALE
+            state -= self.APPLY_SCALE
         self.state = state
-        self.type = TYPE_UNKNOWN
+        self.type = self.TYPE_UNKNOWN
 
     def rotate(self, *args):
         if len(args) == 1 and self.arg_type_matcher(args, [float]):
@@ -1324,7 +1335,7 @@ class AffineTransform:
         else:
             cos = math.cos(theta)
             if cos == -1.0:
-                rotate180()
+                self.rotate180()
             elif cos != 1.0:
                 M0 = self.m00
                 M1 = self.m01

@@ -16,7 +16,7 @@ class VdNodeRender:
             lastCmd = node.getType()
 
     @classmethod
-    def addCommand(cls, path: Path2D, current: list[float], cmd: str, lastCmd: list[float], val: list[float]):
+    def addCommand(cls, path: Path2D, current: list[float], cmd: str, lastCmd: str, val: list[float]):
         incr = 2
         cx = current[0]
         cy = current[1]
@@ -27,7 +27,7 @@ class VdNodeRender:
 
         if cmd in ['z', 'Z']:
             cx = loopX
-            vy = loopY
+            cy = loopY
             incr = 2
         elif cmd in ['m', 'M', 'l', 'L', 't', 'T']:
             incr = 2

@@ -4,7 +4,7 @@ class Curve:
     # https://github.com/openjdk/jdk/blob/0bd2f9cba2118ed5a112b4c70b8ff4a1a58f21dd/src/java.desktop/share/classes/sun/awt/geom/Curve.java#L738
     @classmethod
     def accumulateExtremaBoundsForQuad(cls, bounds: list[float], boundsOffset: int, x1: float, ctrlX: float, x2: float, coeff: list[float], deriv_coeff: list[float]):
-        if ctrlX < boundss[boundsOffset] or bounds[boundsOffset + 1] < ctrlX:
+        if ctrlX < bounds[boundsOffset] or bounds[boundsOffset + 1] < ctrlX:
             dx21 = ctrlX - x1
             coeff[2] = (x2 - ctrlX) - dx21
             coeff[1] = 2.0 * dx21
