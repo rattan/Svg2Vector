@@ -1,7 +1,6 @@
 import sys
 sys.path.append('../src')
 import unittest
-import xml.etree.ElementTree as ET
 
 from OutputStreamWriter import OutputStreamWriter
 from Svg2Vector import Svg2Vector

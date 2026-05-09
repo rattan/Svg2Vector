@@ -1,6 +1,4 @@
 from abc import *
-import math
-from typing_compat import Self
 
 
 class Rectangle2D(metaclass = ABCMeta):

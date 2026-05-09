@@ -158,7 +158,7 @@ class SvgTree:
 
     def logErrorLine(self, s: str, node: minidom.Node, level: SvgLogLevel):
         if not s:
-            ValueError(f's must not be empty')
+            ValueError('s must not be empty')
         line = self.getStartLine(node) if node else 0
         self.mLogMessages.append(self.LogMessage(level, line, s))
 

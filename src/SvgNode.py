@@ -250,7 +250,7 @@ class SvgNode(metaclass=ABCMeta):
     def colorSvg2Vd(self, svgColor: str, errorFallbackColor: str) -> str:
         try:
             return SvgColor.colorSvg2Vd(svgColor)
-        except Exception as e:
+        except Exception:
             self.logError(f'Unsupported color format "{svgColor}"')
             return errorFallbackColor
 

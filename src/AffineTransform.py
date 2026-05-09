@@ -505,7 +505,7 @@ class AffineTransform:
             M10 = self.m10
             M12 = self.m12
             if M01 == 0.0 or M10 == 0.0:
-                raise ValueError(f'Determinant is 0')
+                raise ValueError('Determinant is 0')
             # self.m00 = 0.0
             self.m10 = 1.0 / M01
             self.m01 = 1.0 / M10
@@ -516,7 +516,7 @@ class AffineTransform:
             M01 = self.m01
             M10 = self.m10
             if M01 == 0.0 or M10 == 0.0:
-                raise ValueError(f'Determinant is 0')
+                raise ValueError('Determinant is 0')
             # self.m00 = 0.0
             self.m10 = 1.0 / M01
             self.m01 = 1.0 / M10
@@ -529,7 +529,7 @@ class AffineTransform:
             M11 = self.m11
             M12 = self.m12
             if M00 == 0.0 or M11 == 0.0:
-                raise ValueError(f'Determinant is 0')
+                raise ValueError('Determinant is 0')
             self.m00 = 1.0 / M00
             # self.m10 = 0.0
             # self.m01 = 0.0
@@ -540,7 +540,7 @@ class AffineTransform:
             M00 = self.m00
             M11 = self.m11
             if M00 == 0.0 or M11 == 0.0:
-                raise ValueError(f'Determinant is 0')
+                raise ValueError('Determinant is 0')
             self.m00 = 1.0 / M00
             # self.m10 = 0.0
             # self.m01 = 0.0

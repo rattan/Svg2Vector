@@ -1,7 +1,5 @@
 from abc import *
-import math
 import sys
-from typing_compat import Self
 
 from Curve import Curve
 from Rectangle2D import Rectangle2DF

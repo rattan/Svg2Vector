@@ -45,7 +45,7 @@ class SvgGroupNode(SvgNode):
         if value:
             try:
                 return float(value)
-            except Exception as e:
+            except Exception:
                 pass
         return defaultValue
 

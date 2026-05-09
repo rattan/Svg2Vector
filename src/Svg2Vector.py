@@ -441,7 +441,7 @@ class Svg2Vector:
                                         color = splitAttribute[1]
                                     elif attr.startswith('stop-opacity'):
                                         opacity = splitAttribute[1]
-                    except Exception as e:
+                    except Exception:
                         svg.logError(f'Invalid attribute value: {name}="{value}"', node)
                 offset = svg.formatCoordinate(greatestOffset)
                 vdColor = gradientNode.colorSvg2Vd(color, '#000000')
@@ -689,7 +689,7 @@ class Svg2Vector:
                     elif name == 'class':
                         svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
                         svgTree.addAffectedNodeToStyleClass(f'{currentGroupNode.nodeName}.{value}', child)
-                except Exception as e:
+                except Exception:
                     svgTree.logError(f'Invalid value of "{name}" attribute', n)
                 
     
@@ -736,7 +736,7 @@ class Svg2Vector:
                     elif 'class' == name:
                         svgTree.addAffectedNodeToStyleClass(f'rect.{value}', child)
                         svgTree.addAffectedNodeToStyleClass(f'.{value}', child)
-                except Exception as e:
+                except Exception:
                     svg.logError(f'Invalid attribute value: {name}="{value}"', currentGroupNode)
             
             if not pureTransparent and x != float('nan') and y != float('nan') and width != float('nan') and height != float('nan'):

@@ -134,7 +134,7 @@ class SvgGradientNode(SvgNode):
             else:
                 val = float(vdValue)
 
-        except Exception as e:
+        except Exception:
             self.logError('Unsupported coordinate value')
             pass
         return self.GradientCoordResult(val, isPercentage)
@@ -184,7 +184,7 @@ class SvgGradientNode(SvgNode):
                 try:
                     tr.invert()
                 except Exception as e:
-                    raise Exception(e); # Not going to happen because width * height != 0
+                    raise Exception(e) # Not going to happen because width * height != 0
                 
                 self.mLocalTransform.concatenate(tr)
         
@@ -322,7 +322,7 @@ class SvgGradientNode(SvgNode):
             opacity = 1.0
             try:
                 opacity = float(g.getOpacity())
-            except Exception as e:
+            except Exception:
                 self.logWarning('Unsupported opacity value')
                 opacity = 1.0
             

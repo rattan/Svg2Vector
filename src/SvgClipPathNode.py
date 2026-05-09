@@ -47,7 +47,7 @@ class SvgClipPathNode(SvgGroupNode):
 
         self.mStackedTransform.setTransform(transform)
         for n in self.mAffectedNodes:
-            n.flatten(self.mStackedTransform);   # mLocalTransform does not apply to mAffectedNodes.
+            n.flatten(self.mStackedTransform)   # mLocalTransform does not apply to mAffectedNodes.
         self.mStackedTransform.concatenate(self.mLocalTransform)
         if 'stroke-width' in self.mVdAttributesMap and ((self.mStackedTransform.getType() & AffineTransform.TYPE_MASK_SCALE) != 0):
             self.logWarning('Scaling of the stroke width is ignored')

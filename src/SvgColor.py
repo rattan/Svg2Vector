@@ -206,7 +206,7 @@ class SvgColor:
                 value = float(colorComponent[0: -1])
                 return cls.clampColor(math.round(value * 255.0 / 100.0))
             return cls.clampColor(int(colorComponent))
-        except Exception as e:
+        except Exception:
             raise Exception(svgColorValue)
 
     @classmethod

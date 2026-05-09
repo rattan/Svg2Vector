@@ -99,7 +99,7 @@ class SvgLeafNode(SvgNode):
                     result = float(opacity[:-1]) / 100
                 else:
                     result = float(opacity)
-            except Exception as e:
+            except Exception:
                 # Ignore here, an invalid value is replaced by the default value 1.
                 pass
         return min(max(result, 0), 1)
@@ -160,7 +160,7 @@ class SvgLeafNode(SvgNode):
                         self.mVdAttributesMap['stroke-width'] = self.mSvgTree.formatCoordinate(self.mSvgTree.to32Float(width))
                     if (self.mStackedTransform.getType() & AffineTransform.TYPE_GENERAL_SCALE) != 0:
                         self.logWarning('Scaling of the stroke width is apporoximate')
-                except Exception as e:
+                except Exception:
                     pass
 
     def writeXml(self, writer: OutputStreamWriter, indent: str):
