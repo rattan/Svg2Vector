@@ -1,7 +1,7 @@
-from abc import *
+import abc
 
 
-class Rectangle2D(metaclass = ABCMeta):
+class Rectangle2D(metaclass = abc.ABCMeta):
     OUT_LEFT = 1
     OUT_TOP = 2
     OUT_RIGHT = 4

@@ -1,5 +1,6 @@
+from __future__ import annotations
 import os
-from typing_compat import Self
+from typing_compat import Self, TYPE_CHECKING
 from xml.dom import minidom
 
 from OutputStreamWriter import OutputStreamWriter
@@ -9,13 +10,16 @@ from SvgLeafNode import SvgLeafNode
 from SvgNode import SvgNode
 from VdUtil import VdUtil
 
+if TYPE_CHECKING:
+    from SvgTree import SvgTree
+
 # Represents a SVG group element that contains a clip-path. SvgClipPathNode's mChildren will
 # contain the actual path data of the clip-path. The path of the clip will be constructed in
 # {@link #writeXml} by concatenating mChildren's paths. mAffectedNodes contains any group or leaf
 # nodes that are clipped by the path.
 
 class SvgClipPathNode(SvgGroupNode):
-    def __init__(self, svgTree: 'SvgTree', element: minidom.Element, name: str):
+    def __init__(self, svgTree: SvgTree, element: minidom.Element, name: str):
         super().__init__(svgTree, element, name)
         self.mAffectedNodes = []
 

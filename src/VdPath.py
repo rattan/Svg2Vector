@@ -1,9 +1,14 @@
+from __future__ import annotations
 import math
+from typing import TYPE_CHECKING
 
 from AffineTransform import AffineTransform
 from EllipseSolver import EllipseSolver
 from Point2D import Point2DF
 from VdElement import VdElement
+
+if TYPE_CHECKING:
+    from SvgTree import SvgTree
 
 # Used to represent one VectorDrawable's path element.
 class VdPath(VdElement):
@@ -74,7 +79,7 @@ class VdPath(VdElement):
             return False
 
         @classmethod
-        def NodeListToString(cls, nodes: list, svgTree: 'SvgTree') -> str:
+        def NodeListToString(cls, nodes: list, svgTree: SvgTree) -> str:
             result = ''
             for node in nodes:
                 result += node.mType

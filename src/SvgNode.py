@@ -1,18 +1,22 @@
-from abc import *
+from __future__ import annotations
+import abc
 import copy
 from enum import Enum
 import logging
 import math
 import re
-from typing_compat import Self
+from typing_compat import Self, TYPE_CHECKING
 from xml.dom import minidom
 
 from AffineTransform import AffineTransform
 from OutputStreamWriter import OutputStreamWriter
 from SvgColor import SvgColor
 
+if TYPE_CHECKING:
+    from SvgTree import SvgTree
+
 # Parent class for a SVG file's node, can be either group or leave element.
-class SvgNode(metaclass=ABCMeta):
+class SvgNode(metaclass=abc.ABCMeta):
     logger = logging.getLogger('Svg2Vector')
 
     INDENT_UNIT = '  '
@@ -41,7 +45,7 @@ class SvgNode(metaclass=ABCMeta):
     }
 
     # While parsing the translate() rotate() ..., update the {@code mLocalTransform}.
-    def __init__(self, svgTree: 'SvgTree', element, name: str):
+    def __init__(self, svgTree: SvgTree, element, name: str):
         self.mName = name
         # Keep a reference to the tree in order to dump the error log.
         self.mSvgTree = svgTree
@@ -129,7 +133,7 @@ class SvgNode(metaclass=ABCMeta):
             results[i] = float(numbers[i])
         return results
     
-    def getTree(self) -> 'SvgTree':
+    def getTree(self) -> SvgTree:
         return self.mSvgTree
     
     def getName(self) -> str:
@@ -139,14 +143,14 @@ class SvgNode(metaclass=ABCMeta):
         return self.mDocumentElement
     
     # Dumps the current node's debug info.
-    @abstractmethod
+    @abc.abstractmethod
     def dumpNode(self, indent: str):
         pass
         
     # Writes content of the node into the VectorDrawable's XML file.
     # @param writer the writer to write the group XML element to
     # @param indent whitespace used for indenting output XML
-    @abstractmethod
+    @abc.abstractmethod
     def writeXml(self, writer: OutputStreamWriter, indent: str):
         raise Exception()
 
@@ -155,28 +159,28 @@ class SvgNode(metaclass=ABCMeta):
         SKIP_CHILDREN = 2
         ABORT = 3
 
-    class Visitor(metaclass=ABCMeta):
+    class Visitor(metaclass=abc.ABCMeta):
         # Called by the {@link SvgNode#accept(Visitor)} method for every visited node.
         # @param node the node being visited
         # @return {@link VisitResult#CONTINUE} to continue visiting children,
         #         {@link VisitResult#SKIP_CHILDREN} to skip children and continue visit with
         #         the next sibling, {@link VisitResult#ABORT} to skip all remaining nodes
-        @abstractmethod
-        def visit(self, node: 'SvgNode') -> 'VisitResult':
+        @abc.abstractmethod
+        def visit(self, node: SvgNode) -> SvgNode.VisitResult:
             pass
 
     # Calls the {@linkplain Visitor#visit(SvgNode)} method for this node and its descendants.
     # @param visitor the visitor to accept
-    def accept(self, visitor: Visitor) -> 'VisitResult':
+    def accept(self, visitor: Visitor) -> VisitResult:
         return visitor.visit(self)
     
     # Returns true the node is a group node.
-    @abstractmethod
+    @abc.abstractmethod
     def isGroupNode(self):
         pass
 
     # Transforms the current Node with the transformation matrix.
-    @abstractmethod
+    @abc.abstractmethod
     def transformIfNeeded(self, finalTransform: AffineTransform):
         pass
 
@@ -218,7 +222,7 @@ class SvgNode(metaclass=ABCMeta):
             if name not in self.mVdAttributesMap:
                 self.mVdAttributesMap[name] = value
 
-    @abstractmethod
+    @abc.abstractmethod
     def flatten(self, transform: AffineTransform):
         pass
 
@@ -232,7 +236,7 @@ class SvgNode(metaclass=ABCMeta):
     def getAttributeValue(self, attribute: str) -> str:
         return self.mDocumentElement.getAttribute(attribute)
     
-    @abstractmethod
+    @abc.abstractmethod
     def deepCopy(self) -> Self:
         pass
     

@@ -1,15 +1,19 @@
+from __future__ import annotations
 import logging
-from typing_compat import Self
+from typing_compat import Self, TYPE_CHECKING
 from xml.dom import minidom
 
 from AffineTransform import AffineTransform
 from OutputStreamWriter import OutputStreamWriter
 from SvgNode import SvgNode
 
+if TYPE_CHECKING:
+    from SvgTree import SvgTree
+
 # Represent a SVG file's group element
 class SvgGroupNode(SvgNode):
     logger = logging.getLogger('Svg2Vector')
-    def __init__(self, svgTree: 'SvgTree', docNode: minidom.Element, name: str):
+    def __init__(self, svgTree: SvgTree, docNode: minidom.Element, name: str):
         super().__init__(svgTree, docNode, name)
         self.mChildren = []
         self.mUseReferenceNode = None
@@ -25,7 +29,7 @@ class SvgGroupNode(SvgNode):
             self.addChild(child.deepCopy())
 
     # Resolve the 'href' reference to a difference group element in this 'use' group node.
-    def resolveHref(self, svgTree: 'SvgTree') -> bool:
+    def resolveHref(self, svgTree: SvgTree) -> bool:
         _id = self.getHrefId()
         self.mUseReferenceNode = svgTree.getSvgNodeFromId(_id) if _id else None
         if self.mUseReferenceNode is None:

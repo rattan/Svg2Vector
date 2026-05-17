@@ -1,4 +1,6 @@
 # Methods for converting SVG color values to vector drawable format.
+import math
+
 class SvgColor:
     # Color table from <a href="https://www.w3.org/TR/SVG11/types.html#ColorKeywords">Recognized
     # color keyword names</a>.
@@ -178,7 +180,7 @@ class SvgColor:
         if color.startswith('rgb(') and color.endswith(')'):
             rgb = color[4: -1]
             numbers = rgb.split(',')
-            if lend(numbers) != 3:
+            if len(numbers) != 3:
                 raise ValueError(svgColorValue)
             builder = '#'
             for i in range(3):

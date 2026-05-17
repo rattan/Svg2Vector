@@ -1,10 +1,10 @@
-from abc import *
+import abc
 import sys
 
 from Curve import Curve
 from Rectangle2D import Rectangle2DF
 
-class Path2D(metaclass = ABCMeta):
+class Path2D(metaclass = abc.ABCMeta):
     WIND_EVEN_ODD = 0
     WIND_NON_ZERO = 1
 
@@ -59,27 +59,27 @@ class Path2D(metaclass = ABCMeta):
                     raise MemoryError(e)
             newSize = newSizeMin + (newSize - newSizeMin) / 2
 
-    @abstractmethod
+    @abc.abstractmethod
     def needRoom(self, needMove: bool, newCoords: int):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def moveTo(self, x: float, y: float):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def lineTo(self, x: float, y: float):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def quadTo(self, x1: float, y1: float, x2: float, y2: float):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def curveTo(self, x1: float,y1: float,x2: float,y2: float,x3: float,y3: float):
         pass
         
-    @abstractmethod
+    @abc.abstractmethod
     def clostPath(self):
         pass
 

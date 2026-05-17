@@ -1,4 +1,4 @@
-from abc import *
+import abc
 import math
 from typing_compat import Self
 
@@ -11,16 +11,16 @@ from typing_compat import Self
 # the subclass.
 # @author      Jim Graham
 # @since 1.2
-class Point2D(metaclass = ABCMeta):
-    @abstractmethod
+class Point2D(metaclass = abc.ABCMeta):
+    @abc.abstractmethod
     def getX(self) -> float:
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def getY(self) -> float:
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def setLocation(self, x: float, y: float):
         pass
 
@@ -29,8 +29,8 @@ class Point2D(metaclass = ABCMeta):
     # @param p the specified {@code Point2D} to which to set
     # this {@code Point2D}
     # @since 1.2
-    def setLocation(p: Self):
-        self.setLocation(p.getX(), p.getY())
+    # def setLocation(self, p: Self):
+    #     self.setLocation(p.getX(), p.getY())
 
     # Returns the square of the distance between two points.
     # @param x1 the X coordinate of the first specified point
@@ -132,7 +132,7 @@ class Point2DF(Point2D):
     # @return a string representation of this {@code Point2D}.
     # @since 1.2
     def toString(self) -> str:
-        return f'Point2D.Float[{x}, {y}]'
+        return f'Point2D.Float[{self.x}, {self.y}]'
 
     # @Serial
     # private static final long serialVersionUID = -2870572449815403710L;

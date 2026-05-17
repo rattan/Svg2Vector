@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
 from collections import deque
 import logging
 import re
@@ -242,17 +243,15 @@ class Svg2Vector:
         inDegrees[root] = 0
         while queue:
             current = queue.popleft()
-            if current is SvgGroupNode:
+            if isinstance(current, SvgGroupNode):
                 for child in current.mChildren:
-                    reverseGraph.setdefault(child, {})
-                    reverseGraph[child].append(current)
+                    reverseGraph.setdefault(child, set()).add(current)
                     if child not in inDegrees:
                         queue.append(child)
                         inDegrees[child] = 0
                 useRefNode = current.mUseReferenceNode
                 if useRefNode:
-                    reverseGraph.setdefault(useRefNode, {})
-                    reverseGraph[useRefNode].append(current)
+                    reverseGraph.setdefault(useRefNode, set()).add(current)
                     if useRefNode not in inDegrees:
                         queue.append(useRefNode)
                         inDegrees[useRefNode] = 0
@@ -266,7 +265,7 @@ class Svg2Vector:
         topologicalOrdering = []
         while queue:
             current = queue.popleft()
-            if current is SvgGroupNode:
+            if isinstance(current, SvgGroupNode):
                 if current.mUseReferenceNode:
                     topologicalOrdering.append(current)
                     pendingUseSet.remove(current)

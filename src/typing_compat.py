@@ -1,5 +1,5 @@
-"""Python 3.11 미만 호환성을 위한 typing 유틸리티"""
 import sys
+from typing import TYPE_CHECKING
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -7,4 +7,4 @@ else:
     from typing import TypeVar
     Self = TypeVar('Self')
 
-__all__ = ['Self']
+__all__ = ['Self', 'TYPE_CHECKING']

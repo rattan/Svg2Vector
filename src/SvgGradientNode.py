@@ -1,7 +1,8 @@
+from __future__ import annotations
 from enum import Enum
 import logging
 import os
-from typing_compat import Self
+from typing_compat import Self, TYPE_CHECKING
 from xml.dom import minidom
 
 from AffineTransform import AffineTransform
@@ -16,6 +17,9 @@ from VdNodeRender import VdNodeRender
 from VdPath import VdPath
 from VdUtil import VdUtil
 
+if TYPE_CHECKING:
+    from SvgTree import SvgTree
+    from SvgLeafNode import SvgLeafNode
 
 # Represents an SVG gradient that is referenced by a SvgLeafNode.
 class SvgGradientNode(SvgNode):
@@ -41,7 +45,7 @@ class SvgGradientNode(SvgNode):
         'gradientType': 'android:type',
     }
 
-    def __init__(self, svgTree: 'SvgTree', element: minidom.Element, nodeName: str):
+    def __init__(self, svgTree: SvgTree, element: minidom.Element, nodeName: str):
         super().__init__(svgTree, element, nodeName)
         self.mGradientStops = []
         self.mSvgLeafNode = None
@@ -72,7 +76,7 @@ class SvgGradientNode(SvgNode):
     # Resolves the 'href' reference to a template gradient element.
     # @return True if the reference has been resolved, or False if it cannot be resolved at this
     #     time due to a dependency on an unresolved node
-    def resolveHref(self, svgTree: 'SvgTree') -> bool:
+    def resolveHref(self, svgTree: SvgTree) -> bool:
         _id = self.getHrefId()
         referencedNode = svgTree.getSvgNodeFromId(_id) if _id else None 
         if isinstance(referencedNode, SvgGradientNode):
@@ -361,7 +365,7 @@ class SvgGradientNode(SvgNode):
     def setGradientUsage(self, gradientUsage: GradientUsage):
         self.mGradientUsage = gradientUsage
     
-    def setSvgLeafNode(self, svgLeafNode: 'SvgLeafNode'):
+    def setSvgLeafNode(self, svgLeafNode: SvgLeafNode):
         self.mSvgLeafNode = svgLeafNode
     
     def setBoundingBox(self):

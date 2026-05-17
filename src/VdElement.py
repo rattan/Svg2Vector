@@ -1,7 +1,7 @@
-from abc import *
+import abc
 
 # Used to represent one VectorDrawable's element, can be a group or path
-class VdElement(metaclass=ABCMeta):
+class VdElement(metaclass=abc.ABCMeta):
     def __init__(self):
         self.mName = ''
         self.isClipPath = False

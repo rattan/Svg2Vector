@@ -1,7 +1,8 @@
+from __future__ import annotations
 import logging
 import math
 import os
-from typing_compat import Self
+from typing_compat import Self, TYPE_CHECKING
 
 from AffineTransform import AffineTransform
 from OutputStreamWriter import OutputStreamWriter
@@ -11,10 +12,13 @@ from SvgNode import SvgNode
 from VdPath import VdPath
 from XmlUtils import XmlUtils
 
+if TYPE_CHECKING:
+    from SvgTree import SvgTree
+
 # Represent a SVG file's leave element
 class SvgLeafNode(SvgNode):
     logger = logging.getLogger('Svg2Vector')
-    def __init__(self, svgTree, node, nodeName):
+    def __init__(self, svgTree: SvgTree, node, nodeName):
         super().__init__(svgTree, node, nodeName)
         self.mPathData = None
         self.mFillGradientNode = None
